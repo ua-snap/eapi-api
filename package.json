@@ -1,0 +1,15 @@
+{
+  "name": "eapi-api",
+  "version": "0.0.1",
+  "description": "API glue to connect GUI+backend NCL code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-validation": "^3.0.5"
+  }
+}
