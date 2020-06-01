@@ -9,7 +9,11 @@ h1, h2, h3, h4, h5, h6 {
 	font-family: 'Open Sans';
 }
 
-h2 {
+p {
+	max-width: 50rem;
+}
+
+p + p {
 	margin-top: 2rem;
 }
 
