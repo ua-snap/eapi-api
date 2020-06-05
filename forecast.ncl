@@ -6,7 +6,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/BB_utils.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shapefile_utils.ncl"
 
 ; I don't think this did anything.
-; TODO remove.
+; TODO remove after checking if it
+; does impact stdout/stderr
 err = NhlGetErrorObjectId()
 setvalues err
   "errLevel" : "Fatal"          ; only report Fatal errors
@@ -73,6 +74,7 @@ end if
 
 ; TODO this has some special date handling to examine later
 currentMonth = xmonth - 2
+; TODO this fails when the data aren't ready by the 3rd.
 if (xday.gt.3) then
   currentMonth = xmonth - 1
 end if
@@ -112,17 +114,6 @@ ice_file = addfile(data_dir + "/downloads/icec.sfc.mon.mean.nc","r")
 t2m_file = addfile(data_dir + "/downloads/air.mon.mean.nc","r")
 t925_file = addfile(data_dir + "/downloads/air.mon.mean.pres.nc","r")
 ersst_file = addfile(data_dir + "/downloads/sst.mnmean.v5.nc","r")
-; this var overwritten before use, commenting for now
-;precip_file = addfile(data_dir + "/downloads/prate.sfc.mon.mean.nc","r")
-
-
-
-
-
-;levels: 1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100, 70, 50, 30, 20, 10
-;index:     0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11, 12, 13, 14, 15, 16
-
-
 
 if(webinput.eq.False) then
   ; TODO @kyle does variable mean we've never
@@ -154,12 +145,8 @@ if(webinput.eq.True) then
     specialnum = 0
   end if
   asciiwrite (filedir+"special_ascii.txt" , txtarea)
-  zz = systemfunc("mv -f "+filedir+"special_ascii.txt "+output_dir+"/special_ascii.txt")
-
 
 end if
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Get PDO, NPM, SOI, and Sea Ice Values from .csv file
@@ -392,20 +379,6 @@ end if
   ice_std = ice_std2
   delete(sst_std2)
   delete(ice_std2)
-
-; TODO delete debugging code
-;printVarSummary(sst)
-;printVarSummary(sst_rm)
-;printVarSummary(sst_std)
-;print(t2m(:,{65},{210})+","+t2m_rm(:,{65},{210})+","+t2m_std(:,{65},{210}))
-;exit
-
-;delete(slp_rm)
-;delete(h500_rm)
-;delete(t2m_rm)
-;delete(t925_rm)
-;delete(sst_rm)
-;delete(icec_rm)
 
 
 if(webinput.eq.True) then
@@ -1015,26 +988,16 @@ special_lines       = asciiread(special_file,-1,"string")
 special_numrows     = dimsizes(special_lines)
 special_strs2       = str_split_csv (special_lines, ",", 0)
 
-;print(special_strs2+"")
-;exit
-
 do ttt = 0, special_numrows-1
   specialArray0(ttt) = tofloat(special_strs2(ttt,0))
   specialArray1(ttt) = tofloat(special_strs2(ttt,1))
 end do
 
-
-;print(specialArray0+","+specialArray1)
-;exit
-
-
-;specialArray1(0)=9999
 specialAnalysis0 = new(NumAnalysisYears,float)
 specialAnalysis1 = new(NumAnalysisYears,float)
 specialAnalysis0@_FillValue = 9999.0
 specialAnalysis1@_FillValue = 9999.0
 asciiwrite (filedir+"specialname.txt" , specialText)
-zz = systemfunc("mv -f "+filedir+"specialname.txt "+output_dir+"/specialname.txt")
 ;*******************************
 ;*******************************
 
@@ -1220,11 +1183,12 @@ do k = 0, NumAnalysisYears-1
   specialAnalysis1(k) = specialArray1(k+1)
 end do
 
-;print(t2mAnalysisRed1+"")
-;exit
 
 ;******************************************************************
 ; The next ~125 lines is for making correlation plots
+; TODO -- Rick said that both he and Brian found this
+; code to not be useful (they only use the case where
+; justcorrelations === 3), maybe delete as experimental.
 if (justcorrelations.ge.1.and.justcorrelations.le.2) then
   wtypebig1           = "png"
   wtypebig1@wkWidth  = 1400
@@ -1716,38 +1680,9 @@ N = dimsizes(ydep)
     beta2 = reg_multlin_with_missing(ydep,xp,opt)
   end if
 
-  ;if (specialnum.gt.0.or.specialnum.lt.50) then   ;**** Remove me 3/22/2020
-  ;  beta = beta2
-  ;end if
-
-;********
-
-;  print("     ")
-;  print("beta2 =")
-;  print(beta2)
-;  print(" ")
-;  print(xp(:,0)+"")
-;  print(" ")
-;  print(xp(:,1)+"")
-;  print(" ")
-;  print(xp(:,2)+"")
-;  print(" ")
-;  print(xp(:,3)+"")
-;  print(" ")
-;  print(xp(:,4)+"")
-;  print(" ")
-;  print(ydep+"")
-;  exit
 delete(xp)
-
-;********
-
-
-;********
 betaMultRcor = beta2@r
 betaMultR2cor = beta2@r2
-;delete(xp)
-
 
 intercept  = beta(0)
 
@@ -1827,14 +1762,6 @@ templevelORrh = " T"+getlev(templev)
 
 weightString = "Analog Years Based on Weighting-->~C~"+"SLP:"+sprintf("%6.2f",slpwgt)+" Z"+getlev(heightlev)+":"+sprintf("%6.2f",h500wgt)+" T2M:"+sprintf("%6.2f",t2mwgt)+templevelORrh+":"+sprintf("%6.2f",t925wgt)+" ~C~SST:"+sprintf("%6.2f",sstwgt)+", "+" "
 weightString2 = "SLP:"+sprintf("%6.2f",slpwgt)+" Z"+getlev(heightlev)+":"+sprintf("%6.2f",h500wgt)+" T2M:"+sprintf("%6.2f",t2mwgt)+templevelORrh+":"+sprintf("%6.2f",t925wgt)+" ~C~SST:"+sprintf("%6.2f",sstwgt)+" "
-
-
-
-;; 11 seconds
-
-;print(weightedAnalysisBlue2+"   "+weightedAnalysisRed2)
-;print(slpwgt+","+h500wgt+","+t2mwgt+","+t925wgt+","+sstwgt+","+autoWgt)
-;exit
 
 
   if (variable .eq. 1) then
@@ -2050,15 +1977,6 @@ if (justcorrelations.eq.3) then
         multRcor(7,r,s) = theavesst@_FillValue
         multRcor(12,r,s) = theavesst@_FillValue
       end if
-
-      ;if (tofloat(slp&lat(r)).eq.tofloat(0).and.tofloat(slp&lon(s)).eq.tofloat(210)) then
-      ;  lp = regline_stats(ydep,theavesst)
-      ;  print(ydep+","+theavesst)
-      ;  print("")
-      ;  print(lp@r+","+lp@F_pval)
-      ;  exit
-      ;end if
-
 
       delete(numregressvars)
       delete(xpp)
@@ -2493,23 +2411,6 @@ if (justcorrelations.eq.3) then
 end if
 
 
-;;&&&&&&&&&&&&&&&
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ;;; Compute a value for user seleced month(s) for every year (not future months)
   maxIndex = 0
   do p = 1, 77   ; change to 68 when Jan. 2016 data comes in. (72 in 2020)
@@ -2521,7 +2422,6 @@ end if
         ;; and subtract it from the target user month/year value. This is "1" array.
         ;; The "2" array holds the actual average (box) value.
         maxIndex = p   ; maxIndex is the index of the last year included
-        ;print("year = "+theyear+"   jk = "+jk)
         sz = 0.
         hz = 0.
         tz = 0.
@@ -2887,19 +2787,6 @@ end if
       end if
   end do
 
-
-
-; 80 seconds
-
-
-;print("weights")
-;print(slpwgt+","+h500wgt+","+t2mwgt+","+t925wgt+","+sstwgt)
-;print("")
-
-;print(YearArray+","+slpArray3c+","+h500Array3c+","+t2mArray3c+","+t925Array3c+","+sstArray3c+","+weightedArraySpecial)
-;print("")
-;exit
-
   slpArray3(0) = 9999.0
   h500Array3(0) = 9999.0
   t2mArray3(0) = 9999.0
@@ -2981,8 +2868,6 @@ end if
     sstArrayforRMS(i) = sstArray2(i+1)
     iceArrayforRMS(i) = iceArray2(i+1)
     YearArrayforRMS(i) = yrStrt + i + 1
-    ;; not sure why this was here       iceYearArrayforRMS(i) = yrStrt + i + 1
-    ;print(YearArrayforRMS(i)+" , "+slpArrayforRMS(i)+" , "+h500ArrayforRMS(i)+" , "+t2mArrayforRMS(i)+" , "+t925ArrayforRMS(i)+" , "+sstArrayforRMS(i))  ; leave this line here
   end do
 
 
@@ -3005,11 +2890,7 @@ end if
   AKboxsstArray4 = new(RMS_Array_Size,float)
   AKboxiceArray4 = new(RMS_Array_Size,float)
 
-
-;print(dimsizes(slp))
-
   do pt = 0, RMS_Array_Size - 1
-    ;print("Got here "+pt)
     indexA = tointeger((pt*12)+usermonth-1+fmnths)+12
     indexB = tointeger((pt*12)+usermonth-1+fmnths+fmnths2-1)+12
     indexC = tointeger(thetime+fmnths)
@@ -3392,9 +3273,6 @@ if(YearArray(ffff(cat)).eq.useryear) then   ; for icec
 end if
 weightedICEString = "1) "+YearArray(ffff(cat)) + " 2) "+YearArray(ffff(cat+1)) + " 3) "+YearArray(ffff(cat+2)) + " 4) "+YearArray(ffff(cat+3)) + " 5) "+YearArray(ffff(cat+4))
 
-;print(specialArray0+"    "+specialArray1)
-
-
 sp1 = specialArray1(toint(YearArray(xxyy(ii)))-1948)
 sp2 = specialArray1(toint(YearArray(xxyy(ii+1)))-1948)
 sp3 = specialArray1(toint(YearArray(xxyy(ii+2)))-1948)
@@ -3408,37 +3286,7 @@ zz = systemfunc("mv -f "+filedir+"specialresult.txt "+output_dir+"/specialresult
 ;*****
 print("Sept sea ice forecast for "+usermonth+"/"+useryear+" using "+exmthlabel+" months of data: "+YearArray(xxyy(ii))+","+YearArray(xxyy(ii+1))+","+YearArray(xxyy(ii+2))+","+YearArray(xxyy(ii+3))+","+YearArray(xxyy(ii+4))+","+specialResult)
 
-;print("usermonth ="+usermonth+"")
-;print("useryear ="+useryear+"")
-;print("back months to assess = "+exmthlabel+"")
-;print("start months forward = "+fmnths+"")
-;print("forward months to forecast for = "+fmnths2+"")
-;print("heightlev ="+heightlev+"")
-;print("templev ="+templev+"")
-;print("variable to forecast = "+variable+"")
-;print("slpwgt ="+slpwgt+"")
-;print("h500wgt ="+h500wgt+"")
-;print("t2mwgt ="+t2mwgt+"")
-;print("t925wgt ="+t925wgt+"")
-;print("sstwgt ="+sstwgt+"")
-;print(y1+"")
-;print(y2+"")
-;print(x1+"")
-;print(x2+"")
-;print(AK1+"")
-;print(AK2+"")
-;print(AK3+"")
-;print(AK4+"")
-;print("ID = "+ID+"")
-;print("detrendID = "+detrend+"")
-;print("autoWgt = "+autoWgt+"")
-;print("indexchoice = "+indexchoice+"")
-;print("specialnum = "+specialnum+"")
-;print(beta2)
-;print(" ")
-;print("YearArray,weightedArray1 = "+YearArray+","+weightedArray1)
-;exit
-;*****
+
 
   ;; These next 4 lines calc the ave value for top 5 analogs of each variable
   AveslpDiff  = (slpArray1(aaaa(ii))  + slpArray1(aaaa(ii+1))  + slpArray1(aaaa(ii+2))  + slpArray1(aaaa(ii+3))  + slpArray1(aaaa(ii+4)))  /5.0
@@ -3503,10 +3351,6 @@ end if
     j = j+1
   end do
 
-
-;print("")
-;print(""+weightedInd)
-
 targetslp        = slp(0,:,:) ; stupid initialization
 targetslp        = dim_avg_n_Wrap(slp(thetime-exmth:thetime,:,:),0)
 targetslpanom    = slp(0,:,:) ; stupid initialization
@@ -3561,14 +3405,7 @@ top5iceAnom      = Spatial5ArrayAnom(icec,weightedInd,iceClm,ClmInd)    ; calc t
 ;;; of the 5 analogs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 maxVerifyIndex = thetime+fmnths+fmnths2-1
-;theMaxDimsizes = ((currentYear - 1948) * 12) + currentMonth
-
-
 dimsz = dimsizes(sst)
-
-;print("thetime = "+thetime+"  fmnths = "+fmnths+"  fmnths2 = "+fmnths2+"  dolast = "+doLast+"  ii = "+ii+"  maxVerifyIndex = "+maxVerifyIndex)
-;print("dimsz(0) = "+dimsz(0)+"")
-;exit
 
 if (variable .eq. 1) then
   varName = "SLP"
@@ -3996,6 +3833,7 @@ delete(wks_pan)
   zz = systemfunc("rm -f "+output_dir+"/pan_b5.png")
 
 
+; TODO remove this, not needed
 if (numAnalogsToUse.lt.5) then
   zz = systemfunc("cp -f "+output_dir+"/NA.png "+output_dir+"/a5.png")
   zz = systemfunc("cp -f "+output_dir+"/NA.png "+output_dir+"/b5.png")
@@ -4016,105 +3854,80 @@ end if
 
 
 
+; TODO remove after ensuring not needed
+  ; text2 = "Top 5 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", "+YearArray(wwww(ii+3))+", and "+YearArray(wwww(ii+4))+"."
+  ; if (numAnalogsToUse.eq.4) then
+  ;   text2 = "Top 4 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", and "+YearArray(wwww(ii+3))+"."
+  ; end if
+  ; if (numAnalogsToUse.eq.3) then
+  ;   text2 = "Top 3 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", and "+YearArray(wwww(ii+2))+"."
+  ; end if
+  ; if (numAnalogsToUse.eq.2) then
+  ;   text2 = "Top 2 Atmospheric Match Years Are: "+YearArray(wwww(ii))+" and "+YearArray(wwww(ii+1))+"."
+  ; end if
+  ; if (numAnalogsToUse.eq.1) then
+  ;   text2 = "Top Atmospheric Match Year Is: "+YearArray(wwww(ii))+"."
+  ; end if
+  ; asciiwrite (output_dir+"text2.txt" , text2)
+  ; zz = systemfunc("mv -f "+filedir+"text2.txt "+output_dir+"/text2.txt")
 
-  text2 = "Top 5 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", "+YearArray(wwww(ii+3))+", and "+YearArray(wwww(ii+4))+"."
-  if (numAnalogsToUse.eq.4) then
+  ; text3 = "SLP:"+sprintf("%6.2f",slpwgt)+", Z"+getlev(heightlev)+":"+sprintf("%6.2f",h500wgt)+", T2M:"+sprintf("%6.2f",t2mwgt)+", T"+getlev(templev)+":"+sprintf("%6.2f",t925wgt)+", SST:"+sprintf("%6.2f",sstwgt)+"."
+
+  ; if(domanual.eq.True) then
+  ;   if(manualyesno.eq.1) then
+  ;     text3 = "No weighting performed due to manual year selection."
+  ;   end if
+  ; end if
+
+
+
+
+
+asciiwrite (filedir+"rms1.txt" , sprintf("%6.3f",weightedArray1(wwww(ii))))
+asciiwrite (filedir+"rms2.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+1))))
+asciiwrite (filedir+"rms3.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+2))))
+asciiwrite (filedir+"rms4.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+3))))
+asciiwrite (filedir+"rms5.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+4))))
+asciiwrite (filedir+"slpyears.txt" , weightedSLPString)
+asciiwrite (filedir+"h500years.txt" , weightedH500String)
+asciiwrite (filedir+"t2myears.txt" , weightedT2MString)
+asciiwrite (filedir+"t925years.txt" , weightedT925String)
+asciiwrite (filedir+"sstyears.txt" , weightedSSTString)
+asciiwrite (filedir+"iceyears.txt" , weightedICEString)
+asciiwrite (filedir+"heightlevel.txt" , getlev(heightlev))
+asciiwrite (filedir+"templevel.txt" , getlev(templev))
+
+text2 = "Top 5 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", "+YearArray(wwww(ii+3))+", and "+YearArray(wwww(ii+4))+"."
+if (numAnalogsToUse.eq.4) then
     text2 = "Top 4 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", and "+YearArray(wwww(ii+3))+"."
-  end if
-  if (numAnalogsToUse.eq.3) then
+end if
+if (numAnalogsToUse.eq.3) then
     text2 = "Top 3 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", and "+YearArray(wwww(ii+2))+"."
-  end if
-  if (numAnalogsToUse.eq.2) then
+end if
+if (numAnalogsToUse.eq.2) then
     text2 = "Top 2 Atmospheric Match Years Are: "+YearArray(wwww(ii))+" and "+YearArray(wwww(ii+1))+"."
-  end if
-  if (numAnalogsToUse.eq.1) then
+end if
+if (numAnalogsToUse.eq.1) then
     text2 = "Top  Atmospheric Match Year Is: "+YearArray(wwww(ii))+"."
-  end if
-  asciiwrite (filedir+"text2.txt" , text2)
-  zz = systemfunc("mv -f "+filedir+"text2.txt "+output_dir+"/text2.txt")
-
-  text3 = "SLP:"+sprintf("%6.2f",slpwgt)+", Z"+getlev(heightlev)+":"+sprintf("%6.2f",h500wgt)+", T2M:"+sprintf("%6.2f",t2mwgt)+", T"+getlev(templev)+":"+sprintf("%6.2f",t925wgt)+", SST:"+sprintf("%6.2f",sstwgt)+"."
-
-  if(domanual.eq.True) then
+end if
+asciiwrite (filedir+"text2.txt" , text2)
+text3 = "SLP:"+sprintf("%6.2f",slpwgt)+", Z"+getlev(heightlev)+":"+sprintf("%6.2f",h500wgt)+", T2M:"+sprintf("%6.2f",t2mwgt)+", T"+getlev(templev)+":"+sprintf("%6.2f",t925wgt)+", SST:"+sprintf("%6.2f",sstwgt)+"."
+if(domanual.eq.True) then
     if(manualyesno.eq.1) then
-      text3 = "No weighting performed due to manual year selection."
+        text3 = "No weighting performed due to manual year selection."
     end if
-  end if
+end if
+asciiwrite (filedir+"text3.txt" , text3)
+asciiwrite (filedir+"year1.txt" , YearArray(wwww(ii)))
+asciiwrite (filedir+"year2.txt" , YearArray(wwww(ii+1)))
+asciiwrite (filedir+"year3.txt" , YearArray(wwww(ii+2)))
+asciiwrite (filedir+"year4.txt" , YearArray(wwww(ii+3)))
+asciiwrite (filedir+"year5.txt" , YearArray(wwww(ii+4)))
+asciiwrite (filedir+"verstr.txt" , "Since the forecast month is in the future, there are no verification statistics to report")
 
-
-
-
-
-  asciiwrite (filedir+"rms1.txt" , sprintf("%6.3f",weightedArray1(wwww(ii))))
-  zz = systemfunc("mv -f "+filedir+"rms1.txt "+output_dir+"/rms1.txt")
-  asciiwrite (filedir+"rms2.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+1))))
-  zz = systemfunc("mv -f "+filedir+"rms2.txt "+output_dir+"/rms2.txt")
-  asciiwrite (filedir+"rms3.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+2))))
-  zz = systemfunc("mv -f "+filedir+"rms3.txt "+output_dir+"/rms3.txt")
-  asciiwrite (filedir+"rms4.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+3))))
-  zz = systemfunc("mv -f "+filedir+"rms4.txt "+output_dir+"/rms4.txt")
-  asciiwrite (filedir+"rms5.txt" , sprintf("%6.3f",weightedArray1(wwww(ii+4))))
-  zz = systemfunc("mv -f "+filedir+"rms5.txt "+output_dir+"/rms5.txt")
-
-  asciiwrite (filedir+"slpyears.txt" , weightedSLPString)
-  zz = systemfunc("mv -f "+filedir+"slpyears.txt "+output_dir+"/slpyears.txt")
-  asciiwrite (filedir+"h500years.txt" , weightedH500String)
-  zz = systemfunc("mv -f "+filedir+"h500years.txt "+output_dir+"/h500years.txt")
-  asciiwrite (filedir+"t2myears.txt" , weightedT2MString)
-  zz = systemfunc("mv -f "+filedir+"t2myears.txt "+output_dir+"/t2myears.txt")
-  asciiwrite (filedir+"t925years.txt" , weightedT925String)
-  zz = systemfunc("mv -f "+filedir+"t925years.txt "+output_dir+"/t925years.txt")
-  asciiwrite (filedir+"sstyears.txt" , weightedSSTString)
-  zz = systemfunc("mv -f "+filedir+"sstyears.txt "+output_dir+"/sstyears.txt")
-  asciiwrite (filedir+"iceyears.txt" , weightedICEString)
-  zz = systemfunc("mv -f "+filedir+"iceyears.txt "+output_dir+"/iceyears.txt")
-
-  asciiwrite (filedir+"heightlevel.txt" , getlev(heightlev))
-  zz = systemfunc("mv -f "+filedir+"heightlevel.txt "+output_dir+"/heightlevel.txt")
-  asciiwrite (filedir+"templevel.txt" , getlev(templev))
-  zz = systemfunc("mv -f "+filedir+"templevel.txt "+output_dir+"/templevel.txt")
-
-  text2 = "Top 5 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", "+YearArray(wwww(ii+3))+", and "+YearArray(wwww(ii+4))+"."
-  if (numAnalogsToUse.eq.4) then
-    text2 = "Top 4 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", "+YearArray(wwww(ii+2))+", and "+YearArray(wwww(ii+3))+"."
-  end if
-  if (numAnalogsToUse.eq.3) then
-    text2 = "Top 3 Atmospheric Match Years Are: "+YearArray(wwww(ii))+", "+YearArray(wwww(ii+1))+", and "+YearArray(wwww(ii+2))+"."
-  end if
-  if (numAnalogsToUse.eq.2) then
-    text2 = "Top 2 Atmospheric Match Years Are: "+YearArray(wwww(ii))+" and "+YearArray(wwww(ii+1))+"."
-  end if
-  if (numAnalogsToUse.eq.1) then
-    text2 = "Top  Atmospheric Match Year Is: "+YearArray(wwww(ii))+"."
-  end if
-  asciiwrite (filedir+"text2.txt" , text2)
-  zz = systemfunc("mv -f "+filedir+"text2.txt "+output_dir+"/text2.txt")
-  text3 = "SLP:"+sprintf("%6.2f",slpwgt)+", Z"+getlev(heightlev)+":"+sprintf("%6.2f",h500wgt)+", T2M:"+sprintf("%6.2f",t2mwgt)+", T"+getlev(templev)+":"+sprintf("%6.2f",t925wgt)+", SST:"+sprintf("%6.2f",sstwgt)+"."
-  if(domanual.eq.True) then
-    if(manualyesno.eq.1) then
-      text3 = "No weighting performed due to manual year selection."
-    end if
-  end if
-  asciiwrite (filedir+"text3.txt" , text3)
-  zz = systemfunc("mv -f "+filedir+"text3.txt "+output_dir+"/text3.txt")
-  asciiwrite (filedir+"year1.txt" , YearArray(wwww(ii)))
-  zz = systemfunc("mv -f "+filedir+"year1.txt "+output_dir+"/year1.txt")
-  asciiwrite (filedir+"year2.txt" , YearArray(wwww(ii+1)))
-  zz = systemfunc("mv -f "+filedir+"year2.txt "+output_dir+"/year2.txt")
-  asciiwrite (filedir+"year3.txt" , YearArray(wwww(ii+2)))
-  zz = systemfunc("mv -f "+filedir+"year3.txt "+output_dir+"/year3.txt")
-  asciiwrite (filedir+"year4.txt" , YearArray(wwww(ii+3)))
-  zz = systemfunc("mv -f "+filedir+"year4.txt "+output_dir+"/year4.txt")
-  asciiwrite (filedir+"year5.txt" , YearArray(wwww(ii+4)))
-  zz = systemfunc("mv -f "+filedir+"year5.txt "+output_dir+"/year5.txt")
-  asciiwrite (filedir+"verstr.txt" , "Since the forecast month is in the future, there are no verification statistics to report")
-  zz = systemfunc("mv -f "+filedir+"verstr.txt "+output_dir+"/verstr.txt")
-
-
-zz = systemfunc("cp -f "+output_dir+"/NA.png "+output_dir+"/v.png")
-zz = systemfunc("cp -f "+output_dir+"/NA.png "+output_dir+"/v3.png")
-
-
+; TODO remove
+; zz = systemfunc("cp -f "+output_dir+"/NA.png "+output_dir+"/v.png")
+; zz = systemfunc("cp -f "+output_dir+"/NA.png "+output_dir+"/v3.png")
 
 
 resP                  = True                    ; modify the panel plot
@@ -4123,14 +3936,9 @@ resP@gsnPanelLabelBar = False                   ; add common colorbar
 
 
 
-
-
-
 ;; Verification plot (only if possible)
 b=thetime+fmnths+fmnths2-1
 
-;print("b="+b+"  thetime="+thetime+"   totalDims="+totalDims)
-;print("")
 
 if (b.lt.totalDims) then
 
@@ -4258,11 +4066,6 @@ if (b.lt.totalDims) then
 
   theRank = myRank(AKverifyRMS,top5RMS)
 
-  ;print("AKverifyRMS = "+AKverifyRMS)
-  ;print("theRank = "+theRank)
-  ;print("top5RMS = "+top5RMS)
-
-
   theMonteCarloRank = MonteCarloRank2(AKverifyRMS,top5RMS,numAnalogsToUse)
   rankString="Red box forecast better than "+sprintf("%7.1f",theRank)+"% similar months~C~and better than "+sprintf("%7.1f",theMonteCarloRank)+"% of simulations."
   rankString2="Forecast better than "+sprintf("%7.1f",theMonteCarloRank)+"% of simulations. A no-skill forecast is 50th percentile."
@@ -4376,12 +4179,6 @@ if (b.lt.totalDims) then
         if(CFSv2_actual_RMS.gt.analog_actual_RMS) then
           winner2 = "ANALOGS"
         end if
-        ;print("Analog forecast vs. actual T2M = "+analog_actual_RMS+" / "+"NMME forecst vs. actual T2M  = "+NMME_actual_RMS+" : "+winner)
-        ;if (ID.eq.1) then
-        ;  print("ID,Match Year,Match Month,Months Used for Match,Forecast Months Ahead,Analongs RMSE,NMME RMSE,CFSv2 RMSE, Winner1, Winner2")
-        ;end if
-        ;print(ID+","+useryear+","+usermonth+","+exmth+","+fmnths+","+analog_actual_RMS +","+NMME_actual_RMS +","+CFSv2_actual_RMS+","+winner+","+winner2     )
-
 
         wks_pan = gsn_open_wks(wtype,filedir+"pan_v3")
         AKdiff = W_ave(cdfAll,thetime+fmnths,thetime+fmnths+fmnths2-1,AK1,AK2,AK3,AK4) - W_ave(cdfClm,usermonth-1+12+fmnths,usermonth-1+12+fmnths+fmnths2-1,AK1,AK2,AK3,AK4)
@@ -4452,14 +4249,6 @@ overlay(plotr,plotr3)
 draw(plotr)
 frame(wks_pan)
 
-  zz = systemfunc("mv -f "+filedir+"pan_s1.png "+output_dir+"/s1.png")
-
-;print(AKt2mArray+"")
-;print("")
-;print(AksctArr+"")
-;print("")
-;print(sortInx+"")
-
 ;; XY Scatter plot showing how the best 5 analog years fared (plus verification year)
 g = new((/9,RMS_Array_Size/),float)
 do qq=0,RMS_Array_Size - 1  ; loop through and populate top 5 analog month groups into template arrays
@@ -4468,7 +4257,6 @@ do qq=0,RMS_Array_Size - 1  ; loop through and populate top 5 analog month group
 end do
 
 do ww=0,numAnalogsToUse - 1   ; might crash here!
-  ;print("ww= "+ww+"  ii= "+ii+"   AksctArr(sortInx(ii+ww)-1)= "+AksctArr(sortInx(ii+ww)-1))
   g(2,ww) = AksctArr(sortInx(ii+ww)-1)
   g(3,ww) = YearArray(sortInx(ii+ww))
 end do
@@ -4521,13 +4309,6 @@ sstcor = R_value3(sstAnalysisBlue2,ydep)
 icecor = R_value3(iceAnalysisBlue2,ydep)
 weightedcor = R_value3(weightedAnalysisBlue2,ydep)
 
-;print("The slp correlation is for "+monthRangeString1+"-->"+monthRangeString2+" = "+sprintf("%6.3f",slpcor))
-;print("The h500 correlation is for "+monthRangeString1+"-->"+monthRangeString2+" = "+sprintf("%6.3f",h500cor))
-;print("The t2m correlation is for "+monthRangeString1+"-->"+monthRangeString2+" = "+sprintf("%6.3f",t2mcor))
-;print("The t925 correlation is for "+monthRangeString1+"-->"+monthRangeString2+" = "+sprintf("%6.3f",t925cor))
-;print("The sst correlation is for "+monthRangeString1+"-->"+monthRangeString2+" = "+sprintf("%6.3f",sstcor))
-;print("The ice/precip correlation is for "+monthRangeString1+"-->"+monthRangeString2+" = "+sprintf("%6.3f",icecor))
-
 cr = tochar(10)
 
 if (doLast.eq.True) then
@@ -4540,10 +4321,6 @@ end if
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Sea ice estimate section
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;print(YearArray(sortInx(ii))+" , "+YearArray(sortInx(ii+1))+" , "+YearArray(sortInx(ii+2))+" , "+YearArray(sortInx(ii+3))+" , "+YearArray(sortInx(ii+4)))
-
 
 top30Years = new(30,integer)
 maxseaiceyear=toint(-9999)
@@ -4586,10 +4363,6 @@ the5AnalogYears(4) = toint(YearArray(sortInx(ii+4)))
 
 fg = usermonth+fmnths
 fg2 = fg
-;print(" ")
-;print("The 5 Analog years based on your selection criteria are:")
-;print(YearArray(sortInx(ii))+" , "+YearArray(sortInx(ii+1))+" , "+YearArray(sortInx(ii+2))+" , "+YearArray(sortInx(ii+3))+" , "+YearArray(sortInx(ii+4)))
-;print(" ")
 
 if (fg.gt.12) then
   fg2 = fg - 12
@@ -4615,7 +4388,6 @@ theEstimatesM2 = new(5,float)
 theActualsM1 = new(5,float)
 theActualsM2 = new(5,float)
 
-;print("numrows = "+numrows)
 do p = 0, 72   ; change to 69 when Jan. 2017 data comes in.
   theSIyear = p+1948
   theIndex = (p*12)+fg2-1
@@ -4632,18 +4404,6 @@ theSeaIceMonthCalcsM0 = SeaIceCalcs(orderedNum,seaIceMonth,yrStrtIceClm,yrLastIc
 theSeaIceMonthCalcsM1 = SeaIceCalcs(orderedNum,seaIceMonthM1,yrStrtIceClm,yrLastIceClm)
 theSeaIceMonthCalcsM2 = SeaIceCalcs(orderedNum,seaIceMonthM2,yrStrtIceClm,yrLastIceClm)
 
-
-
-
-
-
-;print("M2,"+theSeaIceMonthCalcsM2(0,:)+","+theSeaIceMonthCalcsM2(1,:)+","+theSeaIceMonthCalcsM2(2,:)+","+theSeaIceMonthCalcsM2(3,:)+","+theSeaIceMonthCalcsM2(4,:)+","+theSeaIceMonthCalcsM2(5,:))
-;print("")
-;print("M1,"+theSeaIceMonthCalcsM1(0,:)+","+theSeaIceMonthCalcsM1(1,:)+","+theSeaIceMonthCalcsM1(2,:)+","+theSeaIceMonthCalcsM1(3,:)+","+theSeaIceMonthCalcsM1(4,:)+","+theSeaIceMonthCalcsM1(5,:))
-;print("")
-
-;print("M0,"+theSeaIceMonthCalcsM0(0,:)+","+theSeaIceMonthCalcsM0(1,:)+","+theSeaIceMonthCalcsM0(2,:)+","+theSeaIceMonthCalcsM0(3,:)+","+theSeaIceMonthCalcsM0(4,:)+","+theSeaIceMonthCalcsM0(5,:))
-;print("")
 
   validCount = 0
   ;do lk = 0, numAnalogsToUse - 1
@@ -4901,16 +4661,6 @@ SeaIceForecastM1 = targetSeaIceTrendM1 + aveDeviationM1
 SeaIceForecastM2 = targetSeaIceTrendM2 + aveDeviationM2
 
 
-
-
-
-
-
-;print(weightedArray1+"")
-;print("")
-;print(weightedArraySpecial+"")
-
-
 ;***************************
 ;***************************
 ;***  SPECIAL Calcs and Plot
@@ -4966,7 +4716,6 @@ if (b.lt.totalDims) then    ; only do this part if you can do the verification p
 
   do ear2 = 0, dimsizes(AKverifyRMS)-2  ; it's -2 because the 1948 year has a placeholder value
     ear2plus1 = ear2 + 1
-    ;print("ear2 = "+ear2)
     matchesString2 = matchesString2 + "Selection Match #"+ear2plus1+" ("+YearArray(xxyy(ii+ear2))+ ") was the #"+VerificationRanks2(AKverifyRMS,YearArray(xxyy(ii+ear2)))+" best hindcast match."+cr
   end do
 end if
@@ -5039,45 +4788,32 @@ if (useryear.eq.2020.and.fg.le.currentMonth) then
     plotActual(2) = targetSeaIce - targetSeaIceTrend
 end if
 
-  ;print(plotYear1+","+plotYear2+","+plotYear3+","+plotYear4+","+plotYear5+", "+plotForecast+", "+plotActual)
-
   lineData = new((/validCount+2,3/),float)
   lineData(0,:) = plotForecast
   if (.not.ismissing(plotYear1(2))) then
     lineData(1,:) = plotActual
-    ;print("Actual Sea Ice")
   end if
   templevA = 2
   if (.not.ismissing(plotYear1(2))) then
     lineData(templevA,:) = plotYear1
     templevA = templevA + 1
-    ;print("Sea Ice Analog 1")
   end if
   if (.not.ismissing(plotYear2(2))) then
     lineData(templevA,:) = plotYear2
     templevA = templevA + 1
-    ;print("Sea Ice Analog 2")
   end if
   if (.not.ismissing(plotYear3(2))) then
     lineData(templevA,:) = plotYear3
     templevA = templevA + 1
-    ;print("Sea Ice Analog 3")
   end if
   if (.not.ismissing(plotYear4(2))) then
     lineData(templevA,:) = plotYear4
     templevA = templevA + 1
-    ;print("Sea Ice Analog 4")
   end if
   if (.not.ismissing(plotYear5(0))) then
     lineData(templevA,:) = plotYear5
     templevA = templevA + 1
-    ;print("Sea Ice Analog 5")
   end if
-
-;printVarSummary(lineData)
-;print(lineData)
-
-
 
 SeaIceDeparts = new(NumAnalysisYears,float)
 do qq=0,NumAnalysisYears-1
@@ -5141,40 +4877,12 @@ end if
 
 monback=exmth+1
 
-
-
-if(ID.eq.1)then
-  ;print("ID,Year,Analysis Lat1,Analysis Lat2,Analysis Lon1,Analysis Lon2,Variable,Pct Better,Match Year1,Match Year2,Match Year3,Match Year4,Match Year5,Sea Ice Trend Line,Sea Ice Forecast,Actual Sea Ice")
-  ;print("ID,Year,Match End Month,Months Used,Forecast Months Ahead,Num Forecast Months,Analysis Lat1,Analysis Lat2,Analysis Lon1,Analysis Lon2,Variable,Pct Better,Sea Ice Trend Line,Sea Ice Forecast,Actual Sea Ice,Mult R,MultR2,SLP Cor,Z500 Cor,T2M Cor,T925Cor,SSTCor,SeaIceCor")
-end if
-
-;if(useryear.eq.2020) then
-;  print(ID+","+useryear+","+y1+","+y2+","+x1+","+x2+","+varName+","+"-9999"+","+validIceYears(0)+","+validIceYears(1)+","+validIceYears(2)+","+validIceYears(3)+","+validIceYears(4)+","+targetSeaIceTrend+","+SeaIceForecast+","+targetSeaIce)
-;  print(ID+","+useryear+","+usermonth+","+monback+","+fmnths+","+fmnths2+","+y1+","+y2+","+x1+","+x2+","+varName+","+"-9999"+","+","+targetSeaIceTrend+","+SeaIceForecast+","+targetSeaIce   +","+sprintf("%5.2f",betaMultRcor)+","+sprintf("%5.2f",betaMultR2cor)+","+sprintf("%5.2f",betaSLPR)+","+sprintf("%5.2f",betaH500R)+","+sprintf("%5.2f",betaT2MR)+","+sprintf("%5.2f",betaT925R)+","+sprintf("%5.2f",betaSSTR)+","+sprintf("%5.2f",betaSeaIceR)+","+sprintf("%5.2f",betaSeaIceR2)     )
-;end if
-;if(useryear.lt.2020) then  ; change back to .lt. and uncomment previous section
-;  print(ID+","+useryear+","+usermonth+","+monback+","+fmnths+","+fmnths2+","+y1+","+y2+","+x1+","+x2+","+varName+","+sprintf("%7.1f",theMonteCarloRank)+"%,"+targetSeaIceTrend+","+SeaIceForecast+","+targetSeaIce   +","+sprintf("%5.2f",betaMultRcor)+","+sprintf("%5.2f",betaMultR2cor)+","+sprintf("%5.2f",betaSLPR)+","+sprintf("%5.2f",betaH500R)+","+sprintf("%5.2f",betaT2MR)+","+sprintf("%5.2f",betaT925R)+","+sprintf("%5.2f",betaSSTR)+","+sprintf("%5.2f",betaSeaIceR)+","+sprintf("%5.2f",betaSeaIceR2)     )
-;end if
-
 CorString=""
 CorString="Multiple R (no sign)="+sprintf("%5.2f",betaMultRcor)+", R-square="+sprintf("%5.2f",betaMultR2cor)+", SLP R="+sprintf("%5.2f",betaSLPR)+", Z Height R="+sprintf("%5.2f",betaH500R)+", 2-Meter Temp R="+sprintf("%5.2f",betaT2MR)+", T Height R="+sprintf("%5.2f",betaT925R)+", SST R="+sprintf("%5.2f",betaSSTR)+", Sea Ice Extent R="+sprintf("%5.2f",betaSeaIceR)
 
 
 asciiwrite (filedir+"correlations.txt" , CorString)
 zz = systemfunc("mv -f "+filedir+"correlations.txt "+output_dir+"/correlations.txt")
-
-;print("")
-;print(""+theSeaIceMonthCalcsM0)
-;print("")
-;**************************************
-;**************************************
-;**************************************
-;**************************************
-;**************************************
-;**************************************
-
-
-
 
 
   wks_pan = gsn_open_wks(wtype,filedir+"pan_ice1")
@@ -5681,14 +5389,6 @@ zz = systemfunc("mv -f "+filedir+"special_plot2.png "+output_dir+"/special_plot2
 delete(plotr)
 delete(res55)
 delete(wks_pan)
-
-
-
-
-;print("")
-;print(s1+","+data7(0,:)+","+data7(1,:))
-;print("")
-
 delete(s1)
 delete(s1b)
 delete(s2)
@@ -5829,8 +5529,6 @@ delete(testatts)
 
 
 allYears=""
-;print("weightedcor = "+weightedcor)
-;print(soiArray3)
 
 if (doLast.eq.True) then
   delete(verify)
