@@ -1,6 +1,6 @@
 html
   head
-    title= title
+    title Analog Forecast Results
     link(rel="stylesheet", href="bulma.min.css")
     link(rel="stylesheet", href="app.css")
   body
@@ -18,26 +18,25 @@ html
 
     section(class="section")
         div(class="container")
-            h1(class="title is-3")= message
+            h1(class="title is-3") Analog Forecast Results
 
             p Monocle ipsum dolor sit amet bureaux concierge signature, cutting-edge Singapore cupidatat mollit craftsmanship Beams bulletin in sed deserunt lovely. Eu ex enim, dolore in Washlet Melbourne punctual bespoke premium sharp Shinkansen sint. Concierge dolore intricate vibrant ut smart. Eclectic the best ryokan ANA deserunt. Remarkable charming St Moritz carefully curated fugiat tempor aute Marylebone exquisite. Et Muji K-pop, sint labore punctual ut fugiat id Nordic St Moritz pariatur impeccable in in.
 
     section(class="section")
         div(class="container")
-            h2(class="title is-4") Analog forecast results
             div(class="tile is-ancestor")
                 div(class="tile is-parent")
                     div(class="tile is-child box")
-                        h3(class="title is-5") SLP Forecast for Sept-Nov 1983
+                        h3(class="title is-4") Analog Forecast, #{theme}
+                        h4(class="subtitle is-5") #{forecast_start}&ndash;#{forecast_end}
                         img(src=path + "b.png" class="forecast-output")
-                        p Integer sollicitudin, tortor a mattis commodo, velit urna rhoncus erat, vitae congue lectus dolor consequat libero. Donec leo ligula, maximus et pellentesque sed, gravida a metus. Cras ullamcorper a nunc ac porta. Aliquam ut aliquet lacus, quis faucibus libero. Quisque non semper leo.
+                        p BBOX GOES HERE Integer sollicitudin, tortor a mattis commodo, velit urna rhoncus erat, vitae congue lectus dolor consequat libero. Donec leo ligula, maximus et pellentesque sed, gravida a metus. Cras ullamcorper a nunc ac porta. Aliquam ut aliquet lacus, quis faucibus libero. Quisque non semper leo.
                 div(class="tile is-4 is-vertical is-parent")
                     div(class="tile is-child box")
-                        h3(class="title is-6") Selected analysis, August 1983
+                        h3(class="title is-5") Analog matches
+                        h4(class="subtitle is-6") #{analog_start}&ndash;#{analog_end}
                         img(src=path + "a.png" class="clip")
-                    div(class="tile is-child box")
-                        h3(class="title is-6") Verification
-                        img(src=path + "v.png" class="clip")
+                    div(class="tile is-child")
 
     section(class="section")
         div(class="container")
@@ -47,8 +46,8 @@ html
                 thead
                     tr
                         th(scope="col") Match year
-                        th(scope="col" class="has-text-centered") Analysis match
-                        th(scope="col" class="has-text-centered") Forecast match
+                        th(scope="col" class="has-text-centered") Analog match, #{analog_start}&ndash;#{analog_end}
+                        th(scope="col" class="has-text-centered") Forecast, #{forecast_start}&ndash;#{forecast_end}
                 tbody
                     tr
                         th(scope="row")= year_1

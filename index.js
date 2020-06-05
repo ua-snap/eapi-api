@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { validate, ValidationError, Joi } = require("express-validation");
 const { exec } = require("child_process");
-const fs  = require("fs");
+const fs = require("fs");
 var moment = require("moment");
 var hash = require("object-hash");
 
@@ -59,58 +59,84 @@ const paramValidation = {
     }),
 };
 
-app.get(
-    "/",
-    validate(paramValidation, { keyByField: true }, {}),
-    (req, res, next) => {
-        nonce = hash(req.query, { algorithm: "md5" });
+/*
+Returns a JSON object with the parameters
+that the NCL script needs:
 
-        // Do a bit of pre-processing to get
-        // the dates into a format that the NCL
-        // script is expecting.
-        var analog_start = moment(req.query.analog_daterange_start);
-        var analog_end = moment(req.query.analog_daterange_end);
-        var forecast_start = moment(req.query.forecast_daterange_start);
-        var forecast_end = moment(req.query.forecast_daterange_end);
+a2_usermonth = end month of analog search range
+a2_exmth = # of months of analog search range (max 12)
+a2_useryear = end year of analog search range
+a2_fmnths = # of months after end month of analog search range (max 12)
+a2_fmnths2 = # of months in forecast range
 
-        console.log(analog_start, analog_end, forecast_start, forecast_end);
+Inputs:
+a_start, a_end = analog search window start/end.
+f_start, f_end = forecast interval start/end.
+*/
+function getDateParameters(a_start, a_end, f_start, f_end) {
+    var analog_start = moment(a_start);
+    var analog_end = moment(a_end);
+    var forecast_start = moment(f_start);
+    var forecast_end = moment(f_end);
 
-        // usermonth = end month of analog search range
-        var usermonth = analog_start.month();
+    // usermonth = end month of analog search range
+    // MomentJS is zero-indexed for month number.
+    var usermonth = analog_end.month() + 1;
 
-        // useryear = end year of analog search range
-        var useryear = analog_end.year();
+    // useryear = end year of analog search range
+    var useryear = analog_end.year();
 
-        // exmth = # of months of analog search range
-        var as_duration = moment.duration(analog_start.diff(analog_end));
-        var exmth = Math.abs(Math.round(as_duration.asMonths()));
+    // exmth = # of months of analog search range
+    // TODO throw error if this is >12
+    // Seems to need to be 1 for correlation plot too
+    var as_duration = moment.duration(analog_start.diff(analog_end));
+    var exmth = Math.abs(Math.round(as_duration.asMonths()));
 
-        // fmnths = # of months after end month of forecast range
-        var fs_duration = moment.duration(analog_end.diff(forecast_start));
-        var fmnths = Math.abs(Math.round(fs_duration.asMonths()));
+    // fmnths = # of months after end month of forecast range
+    // TODO throw error if this is >12
+    var fs_duration = moment.duration(analog_end.diff(forecast_start));
+    var fmnths = Math.abs(Math.round(fs_duration.asMonths()));
 
-        // fmnths2 = # of months in forecast range
-        var ff_duration = moment.duration(forecast_start.diff(forecast_end));
-        var fmnths2 = Math.abs(Math.round(ff_duration.asMonths()));
+    // fmnths2 = # of months in forecast range
+    var ff_duration = moment.duration(forecast_start.diff(forecast_end));
+    var fmnths2 = Math.abs(Math.round(ff_duration.asMonths()));
 
-        output_path = "./public/outputs/" + nonce;
+    dateParams = {
+        usermonth: usermonth,
+        useryear: useryear,
+        exmth: exmth,
+        fmnths: fmnths,
+        fmnths2: fmnths2,
+    };
+    return dateParams;
+}
 
-        if (fs.existsSync(output_path)) {
-            console.log("Using prerendered results...");
-            res.render("results", {
-                path: "outputs/" + nonce + "/",
-                title: "EAPI Analog Forecast Results",
-                message: "Analog forecast results",
-                year_1: 2012,
-                year_2: 2016,
-                year_3: 2017,
-                year_4: 2007,
-                year_5: 2011,
-            });
-        } else {
-            // Run the processing.
+/*
+Build the command line that runs the NCL code.
 
-            cli_string = `
+nonce = fragment used to build output directory (md5 of query params works)
+correlation = if true, then it forces two special params to be set.
+params = validated (i.e. expect/handle no garbage or injections) query params
+*/
+function getNclCliCommand(nonce, correlation, params) {
+    dateParams = getDateParameters(
+        params.analog_daterange_start,
+        params.analog_daterange_end,
+        params.forecast_daterange_start,
+        params.forecast_daterange_end
+    );
+
+    if (correlation === true) {
+        // 3 forces RMS correlation, and
+        // duration (exmth) seems to need to be 1 for this.
+        params.correlation = 3;
+        dateParams.exmth = 1;
+    } else {
+        // Fix the value to reduce surprises.
+        params.correlation = 0;
+    }
+
+    cliString = `
 export NCL_OUTPUT_DIR=./public/outputs/${nonce}/ && \
 mkdir -p $NCL_OUTPUT_DIR && \
 conda run -n ncl_stable ncl -n -Q \
@@ -118,44 +144,100 @@ fromweb=1 \
 txtareayesno=2 \
 heightlev=1 \
 templev=1 \
-detrend=${req.query.detrend_data} \
-howmanyyears=${req.query.num_analogs} \
+detrend=${params.detrend_data} \
+howmanyyears=${params.num_analogs} \
 seaiceyesno=0 \
-manualyesno=${req.query.manual_match} \
-manyear1=${req.query.override_year_1} \
-manyear2=${req.query.override_year_2} \
-manyear3=${req.query.override_year_3} \
-manyear4=${req.query.override_year_4} \
-manyear5=${req.query.override_year_5} \
-variable=${req.query.forecast_theme} \
-useryear=${useryear} \
-fmnths=${fmnths} \
-fmnths2=${fmnths2} \
-usermonth=${usermonth} \
-exmth=${exmth} \
-slpwgt1=${req.query.manual_weight_1} \
-h500wgt1=${req.query.manual_weight_2} \
-t2mwgt1=${req.query.manual_weight_3} \
-t925wgt1=${req.query.manual_weight_4} \
-sstwgt1=${req.query.manual_weight_5} \
+manualyesno=${params.manual_match} \
+manyear1=${params.override_year_1} \
+manyear2=${params.override_year_2} \
+manyear3=${params.override_year_3} \
+manyear4=${params.override_year_4} \
+manyear5=${params.override_year_5} \
+variable=${params.forecast_theme} \
+useryear=${dateParams.useryear} \
+fmnths=${dateParams.fmnths} \
+fmnths2=${dateParams.fmnths2} \
+usermonth=${dateParams.usermonth} \
+exmth=${dateParams.exmth} \
+slpwgt1=${params.manual_weight_1} \
+h500wgt1=${params.manual_weight_2} \
+t2mwgt1=${params.manual_weight_3} \
+t925wgt1=${params.manual_weight_4} \
+sstwgt1=${params.manual_weight_5} \
 icewgt1=100 \
-autoWgt=${req.query.auto_weight} \
-y1=${req.query.analog_bbox_s} \
-y2=${req.query.analog_bbox_n} \
-x1=${req.query.analog_bbox_w} \
-x2=${req.query.analog_bbox_e} \
-AK1=${req.query.forecast_bbox_s} \
-AK2=${req.query.forecast_bbox_n} \
-AK3=${req.query.forecast_bbox_w} \
-AK4=${req.query.forecast_bbox_e} \
-justcorrelations=${req.query.correlation} \
+autoWgt=${params.auto_weight} \
+y1=${params.analog_bbox_s} \
+y2=${params.analog_bbox_n} \
+x1=${params.analog_bbox_w} \
+x2=${params.analog_bbox_e} \
+AK1=${params.forecast_bbox_s} \
+AK2=${params.forecast_bbox_n} \
+AK3=${params.forecast_bbox_w} \
+AK4=${params.forecast_bbox_e} \
+justcorrelations=${params.correlation} \
 ID=12345 \
 specialnum=99 \
-forecast.ncl
-`;
-            console.log(cli_string);
+./forecast.ncl
+    `;
+    return cliString;
+}
+
+function renderAnalogForecast(nonce, query, res) {
+    // Build some values used in the template.
+
+    pathBase = "outputs/" + nonce + "/";
+    publicPathBase = "./public/" + pathBase;
+
+    var forecast_themes = {
+        1: "Sea Level Pressure",
+        2: "Pressure level height",
+        3: "2-meter Temperature",
+        4: "Pressure Level Temperature",
+        5: "Sea Surface Temperature",
+        6: "Precipitation",
+    };
+
+    var analog_start = moment(query.analog_daterange_start);
+    var analog_end = moment(query.analog_daterange_end);
+    var forecast_start = moment(query.forecast_daterange_start);
+    var forecast_end = moment(query.forecast_daterange_end);
+
+    // Read output text file(s) to grab more info
+    yearsText = fs.readFileSync(publicPathBase + "text2.txt", "utf-8");
+    let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g)
+
+    res.render("results", {
+        path: pathBase,
+        theme: forecast_themes[query.forecast_theme],
+        forecast_start: forecast_start.format("MMMM YYYY"),
+        forecast_end: forecast_end.format("MMMM YYYY"),
+        analog_start: analog_start.format("MMMM YYYY"),
+        analog_end: analog_end.format("MMMM YYYY"),
+        year_1: year1,
+        year_2: year2,
+        year_3: year3,
+        year_4: year4,
+        year_5: year5,
+    });
+}
+
+// Route for forecast
+app.get(
+    "/forecast",
+    validate(paramValidation, { keyByField: true }, {}),
+    (req, res, next) => {
+        nonce = hash(req.query, { algorithm: "md5" });
+        output_path = "./public/outputs/" + nonce;
+
+        if (fs.existsSync(output_path)) {
+            console.log("Using prerendered results...");
+            renderAnalogForecast(nonce, req.query, res);
+        } else {
+            // Run the processing.
+            cliString = getNclCliCommand(nonce, false, req.query);
+            console.log(cliString);
             exec(
-                cli_string,
+                cliString,
                 { shell: "/bin/bash", timeout: 120000 },
                 (error, stdout, stderr) => {
                     if (error) {
@@ -163,18 +245,7 @@ forecast.ncl
                         return;
                     }
                     console.log(`stdout: ${stdout}`);
-                    // console.error(`stderr: ${stderr}`);
-
-                    res.render("results", {
-                        path: "outputs/" + nonce + "/",
-                        title: "EAPI Analog Forecast Results",
-                        message: "Analog forecast results",
-                        year_1: 2012,
-                        year_2: 2016,
-                        year_3: 2017,
-                        year_4: 2007,
-                        year_5: 2011,
-                    });
+                    renderAnalogForecast(nonce, req.query, res);
                 }
             );
         }
@@ -182,5 +253,5 @@ forecast.ncl
 );
 
 app.listen(port, () =>
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`EAPI-API listening at http://localhost:${port}`)
 );
