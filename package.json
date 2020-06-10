@@ -4,7 +4,11 @@
   "description": "API glue to connect GUI+backend NCL code",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon"
+  },
+  "engines": {
+    "node": "12.16.3"
   },
   "author": "",
   "license": "MIT",
@@ -13,6 +17,10 @@
     "express-validation": "^3.0.5",
     "moment": "^2.26.0",
     "object-hash": "^2.0.3",
-    "pug": "^2.0.4"
+    "pug": "^2.0.4",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
   }
 }

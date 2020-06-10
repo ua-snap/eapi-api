@@ -5,10 +5,46 @@ const { exec } = require("child_process");
 const fs = require("fs");
 var moment = require("moment");
 var hash = require("object-hash");
+const winston = require("winston");
+const debug = process.env.NODE_ENV !== "production";
 
+const logger = winston.createLogger({
+    level: debug ? "debug" : "info",
+    format: winston.format.combine(
+        winston.format.splat(),
+        winston.format.simple()
+    ),
+    transports: [
+        //
+        // - Write all logs with level `error` and below to `error.log`
+        // - Write all logs with level `info` and below to `combined.log`
+        //
+        new winston.transports.File({ filename: "error.log", level: "error" }),
+        new winston.transports.File({ filename: "combined.log" }),
+    ],
+});
+
+//
+// If we're not in production then log to the `console` with the format:
+// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
+//
+if (debug) {
+    logger.add(
+        new winston.transports.Console({
+            format: winston.format.simple(),
+        })
+    );
+}
+
+const port = process.env.NODE_PORT || 3000;
+const condaEnv = process.env.CONDA_ENV || "ncl_stable";
+const nclScript = process.env.NCL_SCRIPT || "./forecast.ncl";
+
+logger.info("Using port/mode: %d / %s", port, debug);
+logger.info("Conda env/script location: %s / %s", condaEnv, nclScript);
+
+/* Express setup & configuration */
 const app = express();
-const port = 3000;
-
 app.set("views", "./views");
 app.set("view engine", "pug");
 app.use(express.static("public"));
@@ -139,7 +175,7 @@ function getNclCliCommand(nonce, correlation, params) {
     cliString = `
 export NCL_OUTPUT_DIR=./public/outputs/${nonce}/ && \
 mkdir -p $NCL_OUTPUT_DIR && \
-conda run -n ncl_stable ncl -n -Q \
+conda run -n ${condaEnv} ncl -n -Q \
 fromweb=1 \
 txtareayesno=2 \
 heightlev=1 \
@@ -177,7 +213,7 @@ AK4=${params.forecast_bbox_e} \
 justcorrelations=${params.correlation} \
 ID=12345 \
 specialnum=99 \
-./forecast.ncl
+${nclScript}
     `;
     return cliString;
 }
@@ -204,7 +240,7 @@ function renderAnalogForecast(nonce, query, res) {
 
     // Read output text file(s) to grab more info
     yearsText = fs.readFileSync(publicPathBase + "text2.txt", "utf-8");
-    let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g)
+    let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g);
 
     res.render("results", {
         path: pathBase,
@@ -227,24 +263,26 @@ app.get(
     validate(paramValidation, { keyByField: true }, {}),
     (req, res, next) => {
         nonce = hash(req.query, { algorithm: "md5" });
-        output_path = "./public/outputs/" + nonce;
+        outputPath = "./public/outputs/" + nonce;
 
-        if (fs.existsSync(output_path)) {
-            console.log("Using prerendered results...");
+        // Bypass cache if in debug mode.
+        if (!debug && fs.existsSync(outputPath)) {
+            logger.info("Using existint cached result for: %s", outputPath)
             renderAnalogForecast(nonce, req.query, res);
         } else {
             // Run the processing.
             cliString = getNclCliCommand(nonce, false, req.query);
-            console.log(cliString);
+            logger.debug(cliString);
             exec(
                 cliString,
                 { shell: "/bin/bash", timeout: 120000 },
                 (error, stdout, stderr) => {
                     if (error) {
-                        console.error(`exec error: ${error}`);
+                        logger.error(`exec error: ${error}`);
+                        logger.error(stderr);
                         return;
                     }
-                    console.log(`stdout: ${stdout}`);
+                    logger.info(stdout);
                     renderAnalogForecast(nonce, req.query, res);
                 }
             );
