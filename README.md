@@ -17,10 +17,21 @@ API (nodeJS) that listens for requests, does some basic validation and executes 
 Environment variables to set:
 
  * `NODE_PORT`: port for the node service (default 3000)
- * `NODE_ENV`: if set to `production`, app writes log files (`error.log`, `combined.log` for any other log notes) instead of console output.  If set to any other value, this puts the application into debug mode and bypasses cache for results.
- * `CONDA_ENV`: name of conda environment which can execute the NCL code.  Defaults to `ncl_stable`.
+ * `NODE_ENV`: if set to `production`, app writes log files (`error.log`, `combined.log` for any other log notes) instead of console output.  If set to any other value, this puts the application into debug mode and writes output to console and also bypasses cache, only serving static processing results from `public/test`.
  * `NCL_SCRIPT`: path to NCL script to execute, default `./forecast.ncl`.
+ * `EAPI_USE_CACHE`: set to `false` to bypass the cache and run the processing script every time.
 
+### Production
+
+```
+npm start
+```
+
+### Development
+
+```
+npm run dev
+```
 
 ### Development mode
 

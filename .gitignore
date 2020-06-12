@@ -1,5 +1,5 @@
 # Dependency directories
 node_modules/
 
-public/test/
-public/outputs/
+public/outputs/*
+!public/outputs/test/

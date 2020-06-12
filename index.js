@@ -11,16 +11,21 @@ const debug = process.env.NODE_ENV !== "production";
 const logger = winston.createLogger({
     level: debug ? "debug" : "info",
     format: winston.format.combine(
-        winston.format.splat(),
-        winston.format.simple()
+        winston.format.timestamp({
+            format: "YYYY-MM-DD HH:mm:ss",
+        }),
+        winston.format.json()
     ),
     transports: [
         //
         // - Write all logs with level `error` and below to `error.log`
         // - Write all logs with level `info` and below to `combined.log`
         //
-        new winston.transports.File({ filename: "error.log", level: "error" }),
-        new winston.transports.File({ filename: "combined.log" }),
+        new winston.transports.File({
+            filename: "./logs/error.log",
+            level: "error",
+        }),
+        new winston.transports.File({ filename: "./logs/combined.log" }),
     ],
 });
 
@@ -29,19 +34,16 @@ const logger = winston.createLogger({
 // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
 //
 if (debug) {
-    logger.add(
-        new winston.transports.Console({
-            format: winston.format.simple(),
-        })
-    );
+    logger.add(new winston.transports.Console());
 }
 
 const port = process.env.NODE_PORT || 3000;
-const condaEnv = process.env.CONDA_ENV || "ncl_stable";
 const nclScript = process.env.NCL_SCRIPT || "./forecast.ncl";
-
-logger.info("Using port/mode: %d / %s", port, debug);
-logger.info("Conda env/script location: %s / %s", condaEnv, nclScript);
+const ifUseCache = process.env.EAPI_USE_CACHE || true;
+ifDebug = true ? "debug" : "production";
+logger.info({ NODE_PORT: port, NODE_ENV: ifDebug });
+logger.info({ NCL_SCRIPT: nclScript });
+logger.info({ EAPI_USE_CACHE: ifUseCache });
 
 /* Express setup & configuration */
 const app = express();
@@ -175,7 +177,7 @@ function getNclCliCommand(nonce, correlation, params) {
     cliString = `
 export NCL_OUTPUT_DIR=./public/outputs/${nonce}/ && \
 mkdir -p $NCL_OUTPUT_DIR && \
-conda run -n ${condaEnv} ncl -n -Q \
+ncl -n -Q \
 fromweb=1 \
 txtareayesno=2 \
 heightlev=1 \
@@ -265,14 +267,20 @@ app.get(
         nonce = hash(req.query, { algorithm: "md5" });
         outputPath = "./public/outputs/" + nonce;
 
-        // Bypass cache if in debug mode.
-        if (!debug && fs.existsSync(outputPath)) {
-            logger.info("Using existint cached result for: %s", outputPath)
+        // If in debug mode, send pre-baked results
+        if (debug) {
+            logger.info("Displaying static test results.");
+            nonce = "test";
+            renderAnalogForecast(nonce, req.query, res);
+            next();
+        } else if (ifUseCache && fs.existsSync(outputPath)) {
+            // Render results from cache if possible...
+            logger.info("Using existing cached result for: %s", outputPath);
             renderAnalogForecast(nonce, req.query, res);
         } else {
             // Run the processing.
             cliString = getNclCliCommand(nonce, false, req.query);
-            logger.debug(cliString);
+            logger.debug({ command: cliString, nonce: nonce });
             exec(
                 cliString,
                 { shell: "/bin/bash", timeout: 120000 },
