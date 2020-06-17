@@ -25,6 +25,7 @@ Environment variables to set:
 
 ```
 npm start
+npm run restart # to reload running service
 ```
 
 ### Development
