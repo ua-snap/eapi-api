@@ -18,6 +18,7 @@ Environment variables to set:
 
  * `NODE_PORT`: port for the node service (default 3000)
  * `NODE_ENV`: if set to `production`, app writes log files (`error.log`, `combined.log` for any other log notes) instead of console output.  If set to any other value, this puts the application into debug mode and writes output to console and also bypasses cache, only serving static processing results from `public/test`.
+ * `EAPI_ANALYTICS_TOKEN`: Google Analytics token.  Must be set to run, use fake value for dev.
  * `NCL_SCRIPT`: path to NCL script to execute, default `./forecast.ncl`.
  * `EAPI_USE_CACHE`: set to `false` to bypass the cache and run the processing script every time.
 

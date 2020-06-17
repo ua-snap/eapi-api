@@ -1,5 +1,7 @@
 html
   head
+    script(async, src="https://www.googletagmanager.com/gtag/js?id="+analytics)
+    script window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '#{analytics}');
     title Analog Forecast Results
     link(rel="stylesheet", href="bulma.min.css")
     link(rel="stylesheet", href="app.css")

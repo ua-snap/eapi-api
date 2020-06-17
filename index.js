@@ -7,6 +7,13 @@ var moment = require("moment");
 var hash = require("object-hash");
 const winston = require("winston");
 const debug = process.env.NODE_ENV !== "production";
+const EAPI_ANALYTICS_TOKEN = process.env.EAPI_ANALYTICS_TOKEN;
+
+// Bail if no analytics token is set.
+if (!EAPI_ANALYTICS_TOKEN) {
+    console.log("No EAPI_ANALYTICS_TOKEN analytics token is set, exiting...");
+    process.exit(1);
+}
 
 const logger = winston.createLogger({
     level: debug ? "debug" : "info",
@@ -245,6 +252,7 @@ function renderAnalogForecast(nonce, query, res) {
     let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g);
 
     res.render("results", {
+        analytics: EAPI_ANALYTICS_TOKEN,
         path: pathBase,
         theme: forecast_themes[query.forecast_theme],
         forecast_start: forecast_start.format("MMMM YYYY"),
