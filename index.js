@@ -259,11 +259,16 @@ function renderAnalogForecast(nonce, query, res) {
         forecast_end: forecast_end.format("MMMM YYYY"),
         analog_start: analog_start.format("MMMM YYYY"),
         analog_end: analog_end.format("MMMM YYYY"),
+        analog_start_months: analog_start.format("MMMM"),
+        analog_end_months: analog_end.format("MMMM"),
+        forecast_start_months: forecast_start.format("MMMM"),
+        forecast_end_months: forecast_end.format("MMMM"),
         year_1: year1,
         year_2: year2,
         year_3: year3,
         year_4: year4,
         year_5: year5,
+        current_year: moment().format("YYYY")
     });
 }
 

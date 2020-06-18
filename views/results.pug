@@ -20,9 +20,7 @@ html
 
     section(class="section")
         div(class="container")
-            h1(class="title is-3") Analog Forecast Results
-
-            p Monocle ipsum dolor sit amet bureaux concierge signature, cutting-edge Singapore cupidatat mollit craftsmanship Beams bulletin in sed deserunt lovely. Eu ex enim, dolore in Washlet Melbourne punctual bespoke premium sharp Shinkansen sint. Concierge dolore intricate vibrant ut smart. Eclectic the best ryokan ANA deserunt. Remarkable charming St Moritz carefully curated fugiat tempor aute Marylebone exquisite. Et Muji K-pop, sint labore punctual ut fugiat id Nordic St Moritz pariatur impeccable in in.
+            h1(class="title is-3") Experimental Analog Forecast Results
 
     section(class="section")
         div(class="container")
@@ -31,64 +29,77 @@ html
                     div(class="tile is-child box")
                         h3(class="title is-4") Analog Forecast, #{theme}
                         h4(class="subtitle is-5") #{forecast_start}&ndash;#{forecast_end}
-                        img(src=path + "b.png" class="forecast-output")
-                        p BBOX GOES HERE Integer sollicitudin, tortor a mattis commodo, velit urna rhoncus erat, vitae congue lectus dolor consequat libero. Donec leo ligula, maximus et pellentesque sed, gravida a metus. Cras ullamcorper a nunc ac porta. Aliquam ut aliquet lacus, quis faucibus libero. Quisque non semper leo.
+                        img(src=path + "b.png" class="forecast-output result")
                 div(class="tile is-4 is-vertical is-parent")
                     div(class="tile is-child box")
                         h3(class="title is-5") Analog matches
                         h4(class="subtitle is-6") #{analog_start}&ndash;#{analog_end}
-                        img(src=path + "a.png" class="clip")
+                        img(src=path + "a.png" class="clip result")
                     div(class="tile is-child")
 
     section(class="section")
         div(class="container")
             h2(class="title is-4") Analog match years
-            p Excepteur liveable cosy, Ginza ullamco ANA espresso destination Swiss sharp ut occaecat exclusive reprehenderit pariatur. St Moritz Melbourne izakaya duis deserunt aute Beams occaecat fugiat alluring Sunspel. ANA exquisite qui sunt quality of life Beams boulevard, dolor uniforms efficient irure. Laborum ut Washlet ut, espresso vibrant Scandinavian alluring Ginza elegant smart international consequat.
+            p(class="is-size-5") This table shows #{theme} from the match years for the analog match date range (#{analog_start_months}&ndash;#{analog_end_months}) and the corresponding forecast date range (#{forecast_start_months}&ndash;#{forecast_end_months}).
             table(class="table")
                 thead
                     tr
                         th(scope="col") Match year
-                        th(scope="col" class="has-text-centered") Analog match, #{analog_start}&ndash;#{analog_end}
-                        th(scope="col" class="has-text-centered") Forecast, #{forecast_start}&ndash;#{forecast_end}
+                        th(scope="col" class="has-text-centered") #{analog_start_months}&ndash;#{analog_end_months}
+                        th(scope="col" class="has-text-centered") #{forecast_start_months}&ndash;#{forecast_end_months}
                 tbody
                     tr
                         th(scope="row")= year_1
                         td
-                            img(src=path + "a1.png")
+                            img(src=path + "a1.png", class="result")
                         td
-                            img(src=path + "b1.png")
+                            img(src=path + "b1.png", class="result")
                     tr
                         th(scope="row")= year_2
                         td
-                            img(src=path + "a2.png")
+                            img(src=path + "a2.png", class="result")
                         td
-                            img(src=path + "b2.png")
+                            img(src=path + "b2.png", class="result")
                     tr
                         th(scope="row")= year_3
                         td
-                            img(src=path + "a3.png")
+                            img(src=path + "a3.png", class="result")
                         td
-                            img(src=path + "b3.png")
+                            img(src=path + "b3.png", class="result")
                     tr
                         th(scope="row")= year_4
                         td
-                            img(src=path + "a4.png")
+                            img(src=path + "a4.png", class="result")
                         td
-                            img(src=path + "b4.png")
+                            img(src=path + "b4.png", class="result")
                     tr
                         th(scope="row")= year_5
                         td
-                            img(src=path + "a5.png")
+                            img(src=path + "a5.png", class="result")
                         td
-                            img(src=path + "b5.png")
+                            img(src=path + "b5.png", class="result")
 
     section(class="section")
         div(class="container")
             h2(class="title is-4") About this tool, data, &amp; related research
-            p Pintxos charming cupidatat Airbus A380 impeccable, cosy Shinkansen Scandinavian in qui efficient. Joy Beams aute, voluptate consequat cutting-edge enim dolor Washlet izakaya delightful aliqua dolore Melbourne. Cupidatat enim Lufthansa, exclusive elit Toto occaecat Comme des Garçons laborum joy Melbourne. Vibrant veniam Tsutaya, Fast Lane ad sint Shinkansen Scandinavian alluring in destination Beams emerging exercitation.
+            ol
+                li Explain how the tool was developed &amp; attribution for who initially built it.
+                li List data sets that are used and explain their update interval.
+                li Add any other information needed here.
 
-            p Elegant izakaya Winkreative Nordic Melbourne Airbus A380 Scandinavian. In liveable wardrobe, handsome do et the best charming eclectic. First-class handsome ullamco, exquisite Shinkansen hand-crafted sint in et global dolore exclusive emerging est culpa. Perfect the highest quality dolor cosy velit ut, Zürich veniam magna handsome Scandinavian Baggu quality of life essential aliqua.
+
 
     footer(class="footer")
         div(class="container")
-            p So much footer.
+            p UA is an AA&sol;EO employer and educational institution and prohibits illegal discrimination against any individual.
+            p
+                a(href="https://www.alaska.edu/nondiscrimination/") Statement of Nondiscrimination
+            p(class="copyright") Copyright &copy; #{current_year} University of Alaska Fairbanks.  All rights reserved.
+
+
+    script
+        | document.querySelectorAll("img.result").forEach(img => {
+        |    img.addEventListener("click", e => {
+        |        window.open(e.srcElement.src)
+        |    })
+        | })
