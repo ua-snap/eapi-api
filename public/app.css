@@ -21,6 +21,15 @@ nav div.container {
 	border-bottom: 1px solid #aaa;
 }
 
+.button.is-primary {
+	color: #333;
+	background-color: #D6E6ED;
+}
+.button.is-primary:hover {
+	color: white;
+	background-color: #4C6C71;
+}
+
 /* A couple places to clip away the extra stuff so the main results page just shows the pretty pictures. */
 img.forecast-output {
 	width: 750px;
