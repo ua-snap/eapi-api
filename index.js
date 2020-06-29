@@ -283,7 +283,7 @@ app.get(
             pathBase = "outputs/test/";
             renderAnalogForecast(pathBase, req.query, res);
             next();
-        } else if (ifUseCache && fs.existsSync(outputPath)) {
+        } else if (ifUseCache && fs.existsSync("./public/" + pathBase)) {
             // Render results from cache if possible...
             logger.info("Using existing cached result for: %s", outputPath);
             renderAnalogForecast(pathBase, req.query, res);
