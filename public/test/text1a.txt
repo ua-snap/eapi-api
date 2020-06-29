@@ -1,0 +1,1 @@
+Using Analysis Area Lat: 0 to 90 & Lon: 0 to 360

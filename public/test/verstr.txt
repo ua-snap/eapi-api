@@ -1,0 +1,1 @@
+Since the forecast month is in the future, there are no verification statistics to report
