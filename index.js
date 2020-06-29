@@ -285,7 +285,7 @@ app.get(
             next();
         } else if (ifUseCache && fs.existsSync("./public/" + pathBase)) {
             // Render results from cache if possible...
-            logger.info("Using existing cached result for: %s", outputPath);
+            logger.info("Using existing cached result for: %s", pathBase);
             renderAnalogForecast(pathBase, req.query, res);
         } else {
             // Run the processing.
