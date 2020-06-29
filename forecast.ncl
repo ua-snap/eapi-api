@@ -2,8 +2,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shea_util.ncl"
-; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/BB_utils.ncl"
-; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shapefile_utils.ncl"
+load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/BB_utils.ncl"
+load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shapefile_utils.ncl"
 
 ; I don't think this did anything.
 ; TODO remove after checking if it
