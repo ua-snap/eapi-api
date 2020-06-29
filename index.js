@@ -16,7 +16,7 @@ if (!EAPI_ANALYTICS_TOKEN) {
 }
 
 const logger = winston.createLogger({
-    level: debug ? "debug" : "info",
+    level: "debug",
     format: winston.format.combine(
         winston.format.timestamp({
             format: "YYYY-MM-DD HH:mm:ss",
