@@ -1,1 +1,0 @@
-Multiple R (no sign)= 0.74, R-square= 0.55, SLP R= 0.07, Z Height R= 0.08, 2-Meter Temp R= 0.27, T Height R= 0.27, SST R= 0.17, Sea Ice Extent R=-0.03

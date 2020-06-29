@@ -14,7 +14,14 @@ API (nodeJS) that listens for requests, does some basic validation and executes 
 
 ## Running
 
-Environment variables to set:
+The user running the process must have the `ncl` exec in its path.
+
+```
+export NCARG_ROOT=/usr/local/ncl-6.3.0/;
+export PATH=$NCARG_ROOT/bin:$PATH;
+```
+
+Other environment variables to set:
 
  * `NODE_PORT`: port for the node service (default 3000)
  * `NODE_ENV`: if set to `production`, app writes log files (`error.log`, `combined.log` for any other log notes) instead of console output.  If set to any other value, this puts the application into debug mode and writes output to console and also bypasses cache, only serving static processing results from `public/test`.

@@ -6,7 +6,7 @@ const fs = require("fs");
 var moment = require("moment");
 var hash = require("object-hash");
 const winston = require("winston");
-const debug = process.env.NODE_ENV !== "production";
+const debug = process.env.NODE_ENV != "production";
 const EAPI_ANALYTICS_TOKEN = process.env.EAPI_ANALYTICS_TOKEN;
 
 // Bail if no analytics token is set.
@@ -227,10 +227,8 @@ ${nclScript}
     return cliString;
 }
 
-function renderAnalogForecast(nonce, query, res) {
+function renderAnalogForecast(pathBase, query, res) {
     // Build some values used in the template.
-
-    pathBase = "outputs/" + nonce + "/";
     publicPathBase = "./public/" + pathBase;
 
     var forecast_themes = {
@@ -278,18 +276,17 @@ app.get(
     validate(paramValidation, { keyByField: true }, {}),
     (req, res, next) => {
         nonce = hash(req.query, { algorithm: "md5" });
-        outputPath = "./public/outputs/" + nonce;
-
+        pathBase = "outputs/" + nonce + "/";
         // If in debug mode, send pre-baked results
         if (debug) {
             logger.info("Displaying static test results.");
-            nonce = "test";
-            renderAnalogForecast(nonce, req.query, res);
+            pathBase = "outputs/test/";
+            renderAnalogForecast(pathBase, req.query, res);
             next();
         } else if (ifUseCache && fs.existsSync(outputPath)) {
             // Render results from cache if possible...
             logger.info("Using existing cached result for: %s", outputPath);
-            renderAnalogForecast(nonce, req.query, res);
+            renderAnalogForecast(pathBase, req.query, res);
         } else {
             // Run the processing.
             cliString = getNclCliCommand(nonce, false, req.query);
@@ -304,7 +301,7 @@ app.get(
                         return;
                     }
                     logger.info(stdout);
-                    renderAnalogForecast(nonce, req.query, res);
+                    renderAnalogForecast(pathBase, req.query, res);
                 }
             );
         }
