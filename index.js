@@ -135,7 +135,7 @@ function getDateParameters(a_start, a_end, f_start, f_end) {
     // TODO throw error if this is >12
     // Seems to need to be 1 for correlation plot too
     var as_duration = moment.duration(analog_start.diff(analog_end));
-    var exmth = Math.abs(Math.round(as_duration.asMonths()));
+    var exmth = Math.abs(Math.round(as_duration.asMonths())) + 1;
 
     // fmnths = # of months after end month of forecast range
     // TODO throw error if this is >12
@@ -144,7 +144,7 @@ function getDateParameters(a_start, a_end, f_start, f_end) {
 
     // fmnths2 = # of months in forecast range
     var ff_duration = moment.duration(forecast_start.diff(forecast_end));
-    var fmnths2 = Math.abs(Math.round(ff_duration.asMonths()));
+    var fmnths2 = Math.abs(Math.round(ff_duration.asMonths())) + 1;
 
     dateParams = {
         usermonth: usermonth,
