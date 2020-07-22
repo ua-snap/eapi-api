@@ -9,10 +9,6 @@ h1, h2, h3, h4, h5, h6 {
 	font-family: 'Open Sans';
 }
 
-p {
-	max-width: 50rem;
-}
-
 p + p {
 	margin-top: 2rem;
 }
@@ -60,4 +56,8 @@ table.analogs tr th[scope="row"] {
 	vertical-align: middle;
 	font-weight: 900;
 	font-size: 120%;
+}
+
+footer {
+	text-align: center;
 }
