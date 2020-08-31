@@ -1,0 +1,22 @@
+extends layout.pug
+
+block content
+	section(class="section")
+		div(class="container")
+			h1(class="title is-3") Sorry, something went wrong.
+
+			div(class="is-size-5 narrow")
+				p The processing algorithm failed with the given combinations of inputs and current data sources.  Because of the complexity of the algorithm, it is difficult to pinpoint how and why the processing failed.
+
+				p The attempted processing used this system command:
+
+				p
+					pre #{cliString}
+
+				p The recorded error was:
+
+				p
+					pre #{error}
+
+				p This error has been logged.  Please close this window and try again with different selection criteria.
+

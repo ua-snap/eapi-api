@@ -1,0 +1,38 @@
+html
+  head
+    script(async, src="https://www.googletagmanager.com/gtag/js?id="+analytics)
+    script window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '#{analytics}');
+    title Analog Forecast Results
+    link(rel="stylesheet", href="bulma.min.css")
+    link(rel="stylesheet", href="app.css")
+  body
+    nav(class="navbar", role="navigation", area-label="main navigation")
+        div(class="container")
+            div(class="navbar-brand")
+                a(class="navbar-item", href="uaf-iarc.org")
+                    img(src="IARC_globe_color.svg")
+
+            div(class="navbar-menu")
+                div(class="navbar-end")
+                    div(class="buttons")
+                        a(target="_blank", rel="noopener noreferrer" href="https://uaf-iarc.typeform.com/to/mN7J5cCK#tool=Experimental%20Analog%20Forecast", class="button is-link")
+                            strong Feedback
+
+    block content
+
+    footer(class="footer")
+        div(class="container")
+            div(class="wrapper is-size-6")
+                img(src="UAF.svg")
+                div(class="wrapped")
+                    p Multiple individuals and groups supported the development of the Analog Forecast Tool. Brian Brettschneider developed the science and code for the tool, with guidance from the National Weather Service Alaska Region and <a href="https://uaf-accap.org">Alaska Center for Climate Assessment and Policy</a> (ACCAP). Website development was supported by ACCAP and the <a href="https://www.snap.uaf.edu/" title="👍">Scenarios Network for Alaska and Arctic Planning</a> (SNAP). Financial support for the tool was provided by the <a href="https://cpo.noaa.gov">NOAA Climate Program Office</a>, <a href="https://sites.google.com/alaska.edu/eapi">Experimental Arctic Prediction Initiative</a>, and ACCAP.</p>
+                    p Copyright &copy; #{current_year} University of Alaska Fairbanks.  All rights reserved.
+                    p UA is an AA/EO employer and educational institution and prohibits illegal discrimination against any individual.  <a href="https://www.alaska.edu/nondiscrimination/">Statement of Nondiscrimination</a>
+
+
+    script
+        | document.querySelectorAll("img.result").forEach(img => {
+        |    img.addEventListener("click", e => {
+        |        window.open(e.srcElement.src)
+        |    })
+        | })
