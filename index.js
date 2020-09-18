@@ -366,7 +366,7 @@ function renderAnalogForecast(pathBase, query, res, cliString) {
 }
 
 // Route for forecast
-app.get(
+app.post(
     "/forecast",
     validate(paramValidation, { keyByField: true }, {}),
     (req, res, next) => {
