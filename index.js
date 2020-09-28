@@ -306,7 +306,7 @@ app.get(
         // If in debug mode, send pre-baked results
         if (debug) {
             logger.info("Displaying static test results.");
-            pathBase = "test/";
+            pathBase = "outputs/test/";
             renderAnalogForecast(pathBase, req.query, res);
             next();
         } else if (ifUseCache && fs.existsSync("./public/" + pathBase)) {
