@@ -10,28 +10,17 @@ html
         div(class="container")
             div(class="navbar-brand")
                 a(class="navbar-item", href="uaf-iarc.org")
-                    img(src="IARC_globe_color.svg")
+                    img(style="height: 3em; max-height: 3em;", src="IARC_color_square_acronym-2.svg")
 
             div(class="navbar-menu")
                 div(class="navbar-end")
                     div(class="buttons")
-                        a(target="_blank", rel="noopener noreferrer" href="https://uaf-iarc.typeform.com/to/mN7J5cCK#tool=Experimental%20Analog%20Forecast", class="button is-link")
+                        a(target="_blank", href="https://uaf-iarc.typeform.com/to/UCZcRB", class="button is-primary", style="display: none;")
                             strong Feedback
 
     section(class="section")
         div(class="container")
             h1(class="title is-3") Experimental Analog Forecast Results
-
-            div(class="content narrow is-size-5")
-                p Monthly and seasonal forecasts have less skill than weather forecasts for the next few days.
-
-                p The spread among the forecasts provided by individual analog years is an indication of the uncertainty in an analog-based forecast.
-
-                p Over the Alaska region, the skill of the analog-based monthly and seasonal forecasts have been found to be comparable to the skill of the monthly and seasonal outlooks produced by the Climate Prediction Center.
-
-                p Once analog years have been determined, historical data from those years can be used to obtain forecasts for not only monthly timescales, but also for several days to weeks into the future.  The forecast requires information on evolution of the daily weather following the initial date &ldquo;Day 0&rdquo; of the analog years.
-
-                p Once the analog years have been determined, forecasts of any weather&ndash;related variables can be obtained by knowledge of the evolution of those variables in the analog years.
 
             table(class="table parameters")
                 thead
@@ -123,38 +112,13 @@ html
                         td
                             img(src=path + "b5.png", class="result")
 
-    section(class="section")
-        div(class="container")
-            div(class="content narrow is-size-5")
-                h2(class="title is-3") About this tool
-
-                h3(class="title is-4") Data source
-
-                p The data comes from the NCEI/NCAR R1 reanalysis. Although now superseded by more modern reanalysis, R1 is used because it offers the longest period of record (since 1949) and is kept up to date.
-
-                h3(class="title is-4") What algorithm is used?
-
-                p The criterion for the selection of the analogs is the closeness of the match to the present atmospheric conditions over the area selected by the user.  The metric of the closeness of fit is the root-mean-square difference (current state minus analog candidate) of the predictor variables summed over all grid points in the user-selected area of the predictor variables.
-
-                h3(class="title is-4") Credits &amp; source code
-
-                p Brian Brettschneider with the <a href="https://uaf-accap.org">Alaska Center for Climate Assessment and Policy</a> (ACCAP) developed the science and code for this tool.  Brian now works with the National Weather Service, Anchorage.</p>
-
-                p Source code is available on Github:
-                ul
-                    li <a href="https://github.com/ua-snap/analog-forecast-gui-dash">Front-end user interface code</a> (this page)
-                    li <a href="https://github.com/ua-snap/eapi-api">API code</a>.  The API takes information from the user interface and executes the NCL scientific code and presents results.
-                    li <a href="https://github.com/ua-snap/eapi-analogs">Scientific processing code</a>.  This is the original source code which contains the NCL processing scripts.
-
 
     footer(class="footer")
         div(class="container")
-            div(class="wrapper is-size-6")
-                img(src="UAF.svg")
-                div(class="wrapped")
-                    p The Experimental Analog Forecast Tool was developed was developed by Brian Brettschneider at the <a href="https://uaf-accap.org">Alaska Center for Climate Assessment and Policy</a> (ACCAP), and the work was also supported by the <a href="https://cpo.noaa.gov">NOAA Climate Program Office.</a>  This website was developed by the <a href="https://uaf-accap.org/">ACCAP</a> and the <a href="https://www.snap.uaf.edu/" title="👍">Scenarios Network for Alaska and Arctic Planning</a> (SNAP), research groups at the <a href="https://uaf-iarc.org/">International Arctic Research Center</a> (IARC) at the <a href="https://uaf.edu/uaf/">University of Alaska Fairbanks</a>.
-                    p Copyright &copy; #{current_year} University of Alaska Fairbanks.  All rights reserved.
-                    p UA is an AA/EO employer and educational institution and prohibits illegal discrimination against any individual.  <a href="https://www.alaska.edu/nondiscrimination/">Statement of Nondiscrimination</a>
+            p UA is an AA&sol;EO employer and educational institution and prohibits illegal discrimination against any individual.
+            p
+                a(href="https://www.alaska.edu/nondiscrimination/") Statement of Nondiscrimination
+            p(class="copyright") Copyright &copy; #{current_year} University of Alaska Fairbanks.  All rights reserved.
 
 
     script
