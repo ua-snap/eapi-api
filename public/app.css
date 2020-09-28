@@ -48,22 +48,14 @@ img.clip {
 	object-position: -25px top;
 }
 
-table.table.parameters, table.analogs {
-	margin: 1rem 0 3rem !important;
-}
-
-table caption {
-	display: none;
+table {
+	margin-top: 2rem;
 }
 
 table.analogs tr th[scope="row"] {
 	vertical-align: middle;
 	font-weight: 900;
 	font-size: 120%;
-}
-
-.summary-forecast-box {
-	padding-bottom: 2rem;
 }
 
 .footer {

@@ -1,6 +1,23 @@
-extends layout.pug
+html
+  head
+    script(async, src="https://www.googletagmanager.com/gtag/js?id="+analytics)
+    script window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '#{analytics}');
+    title Analog Forecast Results
+    link(rel="stylesheet", href="bulma.min.css")
+    link(rel="stylesheet", href="app.css")
+  body
+    nav(class="navbar", role="navigation", area-label="main navigation")
+        div(class="container")
+            div(class="navbar-brand")
+                a(class="navbar-item", href="uaf-iarc.org")
+                    img(src="IARC_globe_color.svg")
 
-block content
+            div(class="navbar-menu")
+                div(class="navbar-end")
+                    div(class="buttons")
+                        a(target="_blank", rel="noopener noreferrer" href="https://uaf-iarc.typeform.com/to/mN7J5cCK#tool=Experimental%20Analog%20Forecast", class="button is-link")
+                            strong Feedback
+
     section(class="section")
         div(class="container")
             h1(class="title is-3") Experimental Analog Forecast Results
@@ -16,14 +33,7 @@ block content
 
                 p Once the analog years have been determined, forecasts of any weather&ndash;related variables can be obtained by knowledge of the evolution of those variables in the analog years.
 
-    section(class="section")
-        div(class="container is-size-5")
-            h2(class="title is-4") Results for this processing run
-
-            p(class="is-size-5 narrow") The top 5 atmospheric match years forecasting !{forecast_year_range} from !{analog_year_range} are <strong>#{year_1}, #{year_2}, #{year_3}, #{year_4}, #{year_5}</strong>.
-
             table(class="table parameters")
-                caption Processing parameters
                 thead
                     tr
                         th(scope="col") Parameter
@@ -44,83 +54,43 @@ block content
                         td= pressure_height
                     tr
                         th(scope="row") Analog match temperature level height
-                        td= pressure_temp
+                        td= temperature_height
+                    tr
+                        th(scope="row") Detrend data?
+                        td= detrend
+                    tr
+                        th(scope="row") Automatic match weights?
+                        td= automatic_weights
                     tr
                         th(scope="row") Number of analog matches
                         td 5
 
-            h3(class="title is-5") Match scores for each year
-            table(class="table parameters")
-                caption Match scores for each year
-                thead
-                    tr
-                        th(scope="col") Year
-                        th(scope="col" class="has-text-centered") Score
 
-                tbody
-                    tr
-                        th(scope="row")= year_1
-                        td= year1_rms
-                    tr
-                        th(scope="row")= year_2
-                        td= year2_rms
-                    tr
-                        th(scope="row")= year_3
-                        td= year3_rms
-                    tr
-                        th(scope="row")= year_4
-                        td= year4_rms
-                    tr
-                        th(scope="row")= year_5
-                        td= year5_rms
-
-            h3(class="title is-5") Automatically&ndash;calculated variable weights used in processing
-            table(class="table parameters")
-                caption Automatically&ndash;calculated variable weights used in processing
-                thead
-                    tr
-                        th(scope="col") Variable
-                        th(scope="col" class="has-text-centered") Weight
-
-                tbody
-                    tr
-                        th(scope="row") Sea Level Pressure
-                        td= slpWgt
-                    tr
-                        th(scope="row") Pressure Height
-                        td= z925Wgt
-                    tr
-                        th(scope="row") 2&ndash;Meter Temperature
-                        td= t2mWgt
-                    tr
-                        th(scope="row") Pressure Temperature
-                        td= t925Wgt
-                    tr
-                        th(scope="row") Sea Surface Temperature
-                        td= sstWgt
-
-
-            div(class="summary-forecast-box tile is-ancestor")
+    section(class="section")
+        div(class="container")
+            div(class="tile is-ancestor")
                 div(class="tile is-parent")
                     div(class="tile is-child box")
                         h3(class="title is-4") Analog Forecast, #{theme}
-                        h4(class="subtitle is-5") !{forecast_year_range}
+                        h4(class="subtitle is-5") #{forecast_year_range}
                         img(src=path + "b.png" class="forecast-output result")
                 div(class="tile is-4 is-vertical is-parent")
                     div(class="tile is-child box")
                         h3(class="title is-5") Analog matches
-                        h4(class="subtitle is-6") !{analog_year_range}
+                        h4(class="subtitle is-6") #{analog_year_range}
                         img(src=path + "a.png" class="clip result")
                     div(class="tile is-child")
 
+    section(class="section")
+        div(class="container")
             h2(class="title is-4") Analog match years
-            p(class="is-size-5 narrow") This table shows #{theme} from the match years for the analog match date range (!{analog_month_range}) and the corresponding forecast date range (!{forecast_month_range}).
+            p(class="is-size-5") This table shows #{theme} from the match years for the analog match date range (#{analog_month_range}) and the corresponding forecast date range (#{forecast_month_range}).
             table(class="table analogs")
                 thead
                     tr
                         th(scope="col") Match year
-                        th(scope="col" class="has-text-centered") !{analog_month_range}
-                        th(scope="col" class="has-text-centered") !{forecast_month_range}
+                        th(scope="col" class="has-text-centered") #{analog_month_range}
+                        th(scope="col" class="has-text-centered") #{forecast_month_range}
                 tbody
                     tr
                         th(scope="row")= year_1
@@ -176,3 +146,20 @@ block content
                     li <a href="https://github.com/ua-snap/eapi-api">API code</a>.  The API takes information from the user interface and executes the NCL scientific code and presents results.
                     li <a href="https://github.com/ua-snap/eapi-analogs">Scientific processing code</a>.  This is the original source code which contains the NCL processing scripts.
 
+
+    footer(class="footer")
+        div(class="container")
+            div(class="wrapper is-size-6")
+                img(src="UAF.svg")
+                div(class="wrapped")
+                    p The Experimental Analog Forecast Tool was developed was developed by Brian Brettschneider at the <a href="https://uaf-accap.org">Alaska Center for Climate Assessment and Policy</a> (ACCAP), and the work was also supported by the <a href="https://cpo.noaa.gov">NOAA Climate Program Office.</a>  This website was developed by the <a href="https://uaf-accap.org/">ACCAP</a> and the <a href="https://www.snap.uaf.edu/" title="👍">Scenarios Network for Alaska and Arctic Planning</a> (SNAP), research groups at the <a href="https://uaf-iarc.org/">International Arctic Research Center</a> (IARC) at the <a href="https://uaf.edu/uaf/">University of Alaska Fairbanks</a>.
+                    p Copyright &copy; #{current_year} University of Alaska Fairbanks.  All rights reserved.
+                    p UA is an AA/EO employer and educational institution and prohibits illegal discrimination against any individual.  <a href="https://www.alaska.edu/nondiscrimination/">Statement of Nondiscrimination</a>
+
+
+    script
+        | document.querySelectorAll("img.result").forEach(img => {
+        |    img.addEventListener("click", e => {
+        |        window.open(e.srcElement.src)
+        |    })
+        | })

@@ -57,6 +57,16 @@ const app = express();
 app.set("views", "./views");
 app.set("view engine", "pug");
 app.use(express.static("public"));
+app.use(bodyParser.json()); // TODO may not need this after dev?
+
+// Wire in the validation code
+app.use(function (err, req, res, next) {
+    if (err instanceof ValidationError) {
+        return res.status(err.statusCode).json(err);
+    }
+
+    return res.status(400).json(err);
+});
 
 // Define the validation for parameters
 // Only doing the most basic validation at this point
@@ -91,8 +101,6 @@ const paramValidation = {
         override_year_4: Joi.number(),
         override_year_5: Joi.number(),
         detrend_data: Joi.number(),
-        pressure_height: Joi.number(),
-        pressure_temp: Joi.number(),
     }),
 };
 
@@ -163,10 +171,6 @@ function getNclCliCommand(nonce, correlation, params) {
         params.forecast_daterange_end
     );
 
-    // TODO: Correlations currently aren't supported in this
-    // user interface.  Leaving this code fragment here because
-    // it has a piece of knowledge relating the working state
-    // of the correlation code (must be 3 with month 1)
     if (correlation === true) {
         // 3 forces RMS correlation, and
         // duration (exmth) seems to need to be 1 for this.
@@ -183,8 +187,8 @@ mkdir -p $NCL_OUTPUT_DIR && \
 ncl -n -Q \
 fromweb=1 \
 txtareayesno=2 \
-heightlev=${params.pressure_height} \
-templev=${params.pressure_temp} \
+heightlev=5 \
+templev=1 \
 detrend=${params.detrend_data} \
 howmanyyears=${params.num_analogs} \
 seaiceyesno=0 \
@@ -223,7 +227,7 @@ ${nclScript}
     return cliString;
 }
 
-function renderAnalogForecast(pathBase, query, res, cliString) {
+function renderAnalogForecast(pathBase, query, res) {
     // Build some values used in the template.
     publicPathBase = "./public/" + pathBase;
 
@@ -236,12 +240,6 @@ function renderAnalogForecast(pathBase, query, res, cliString) {
         6: "Precipitation",
     };
 
-    var pressure_levels = {
-        1: "925mb",
-        5: "500mb",
-        9: "200mb",
-    };
-
     var analog_start = moment(query.analog_daterange_start);
     var analog_end = moment(query.analog_daterange_end);
 
@@ -251,12 +249,8 @@ function renderAnalogForecast(pathBase, query, res, cliString) {
         analog_year_range = analog_start.format("MMMM YYYY");
         analog_month_range = analog_start.format("MMMM");
     } else {
-        analog_year_range =
-            analog_start.format("MMMM YYYY") +
-            "&ndash;" +
-            analog_end.format("MMMM YYYY");
-        analog_month_range =
-            analog_start.format("MMMM") + "&ndash;" + analog_end.format("MMMM");
+        analog_year_range = analog_start.format("MMMM YYYY") + " - " + analog_end.format("MMMM YYYY");
+        analog_month_range = analog_start.format("MMMM") + " - " + analog_end.format("MMMM");
     }
 
     var forecast_start = moment(query.forecast_daterange_start);
@@ -264,105 +258,42 @@ function renderAnalogForecast(pathBase, query, res, cliString) {
 
     // Generate forecast month and year ranges for PUG rendering
     var forecast_month_range, forecast_year_range;
-    if (
-        forecast_start.format("MMMM YYYY") == forecast_end.format("MMMM YYYY")
-    ) {
+    if (forecast_start.format("MMMM YYYY") == forecast_end.format("MMMM YYYY")) {
         forecast_year_range = forecast_start.format("MMMM YYYY");
         forecast_month_range = forecast_start.format("MMMM");
     } else {
-        forecast_year_range =
-            forecast_start.format("MMMM YYYY") +
-            "&ndash;" +
-            forecast_end.format("MMMM YYYY");
-        forecast_month_range =
-            forecast_start.format("MMMM") +
-            "&ndash;" +
-            forecast_end.format("MMMM");
+        forecast_year_range = forecast_start.format("MMMM YYYY") + " - " + forecast_end.format("MMMM YYYY");
+        forecast_month_range = forecast_start.format("MMMM") + " - " + forecast_end.format("MMMM");
     }
-
-    forecast_bbox =
-        query.forecast_bbox_n +
-        "N, " +
-        query.forecast_bbox_w +
-        "E, " +
-        query.forecast_bbox_s +
-        "N, " +
-        query.forecast_bbox_e +
-        "E";
-    analog_match_bbox =
-        query.analog_bbox_n +
-        "N, " +
-        query.analog_bbox_w +
-        "E, " +
-        query.analog_bbox_s +
-        "N, " +
-        query.analog_bbox_e +
-        "E";
 
     // Read output text file(s) to grab more info
-    // If processing failed, catch the error and report to user.
-    try {
-        // Get the match years!
-        yearsText = fs.readFileSync(publicPathBase + "text2.txt", "utf-8");
-        let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g);
+    yearsText = fs.readFileSync(publicPathBase + "text2.txt", "utf-8");
+    let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g);
 
-        // Get the auto-weights!
-        weightsText = fs.readFileSync(publicPathBase + "text3.txt", "utf-8");
-        // Split the line by commas to get each result,
-        // Split each value by colon to get the value.
-        let [slpWgt, z925Wgt, t2mWgt, t925Wgt, sstWgt] = weightsText
-            .split(",")
-            .map((wgt) => wgt.split(":")[1]);
-        // Remove training . and whitespace from sstWgt
-        sstWgt = sstWgt.replace(/\.\s*$/, "");
+    forecast_bbox = query.forecast_bbox_n + "N, " + query.forecast_bbox_w + "E, " + query.forecast_bbox_s + "N, " + query.forecast_bbox_e + "E"
+    analog_match_bbox = query.analog_bbox_n + "N, " + query.analog_bbox_w + "E, " + query.analog_bbox_s + "N, " + query.analog_bbox_e + "E"
 
-        // Get the table of match values by year!
-        yearRms = fs.readFileSync(publicPathBase + "matches1.txt", "utf-8");
-        // Split by # to get the csv-like values,
-        // Remove the first value because it's unwanted text,
-        // then unwrap each row to just grab the RMS match numbers.
-        yearRms = yearRms.split("#");
-        yearRms.shift();
-        let [
-            year1_rms,
-            year2_rms,
-            year3_rms,
-            year4_rms,
-            year5_rms,
-        ] = yearRms.map((rms) => rms.split(",")[2]);
-
-        res.render("results", {
-            analytics: EAPI_ANALYTICS_TOKEN,
-            path: pathBase,
-            theme: forecast_themes[query.forecast_theme],
-            pressure_height: pressure_levels[query.pressure_height],
-            pressure_temp: pressure_levels[query.pressure_temp],
-            forecast_year_range: forecast_year_range,
-            forecast_month_range: forecast_month_range,
-            analog_year_range: analog_year_range,
-            analog_month_range: analog_month_range,
-            forecast_bbox: forecast_bbox,
-            analog_match_bbox: analog_match_bbox,
-            year_1: year1,
-            year_2: year2,
-            year_3: year3,
-            year_4: year4,
-            year_5: year5,
-            year1_rms: year1_rms,
-            year2_rms: year2_rms,
-            year3_rms: year3_rms,
-            year4_rms: year4_rms,
-            year5_rms: year5_rms,
-            slpWgt: slpWgt,
-            z925Wgt: z925Wgt,
-            t2mWgt: t2mWgt,
-            t925Wgt: t925Wgt,
-            sstWgt: sstWgt,
-            current_year: moment().format("YYYY"),
-        });
-    } catch (e) {
-        res.render("error", { cliString: cliString, error: e.toString() });
-    }
+    res.render("results", {
+        analytics: EAPI_ANALYTICS_TOKEN,
+        path: pathBase,
+        theme: forecast_themes[query.forecast_theme],
+        forecast_year_range: forecast_year_range,
+        forecast_month_range: forecast_month_range,
+        analog_year_range: analog_year_range,
+        analog_month_range: analog_month_range,
+        forecast_bbox: forecast_bbox,
+        analog_match_bbox: analog_match_bbox,
+        pressure_height: '500mb',
+        temperature_height: '925mb',
+        detrend: 'No',
+        automatic_weights: 'Yes',
+        year_1: year1,
+        year_2: year2,
+        year_3: year3,
+        year_4: year4,
+        year_5: year5,
+        current_year: moment().format("YYYY")
+    });
 }
 
 // Route for forecast
@@ -376,22 +307,12 @@ app.get(
         if (debug) {
             logger.info("Displaying static test results.");
             pathBase = "test/";
-            renderAnalogForecast(
-                pathBase,
-                req.query,
-                res,
-                getNclCliCommand(nonce, false, req.query)
-            );
+            renderAnalogForecast(pathBase, req.query, res);
             next();
         } else if (ifUseCache && fs.existsSync("./public/" + pathBase)) {
             // Render results from cache if possible...
             logger.info("Using existing cached result for: %s", pathBase);
-            renderAnalogForecast(
-                pathBase,
-                req.query,
-                res,
-                getNclCliCommand(nonce, false, req.query)
-            );
+            renderAnalogForecast(pathBase, req.query, res);
         } else {
             // Run the processing.
             cliString = getNclCliCommand(nonce, false, req.query);
@@ -406,20 +327,12 @@ app.get(
                         return;
                     }
                     logger.info(stdout);
-                    renderAnalogForecast(pathBase, req.query, res, cliString);
+                    renderAnalogForecast(pathBase, req.query, res);
                 }
             );
         }
     }
 );
-
-// This route must come last so it catches validation errors.
-app.use(function (err, req, res, next) {
-    res.render("invalid", {
-        query: JSON.stringify(req.query),
-        error: JSON.stringify(err),
-    });
-});
 
 app.listen(port, () =>
     console.log(`EAPI-API listening at http://localhost:${port}`)
