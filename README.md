@@ -2,36 +2,17 @@
 
 API (nodeJS) that listens for requests, does some basic validation and executes the [NCL](https://github.com/ua-snap/eapi-analogs) code which performs processing.  The API then displays results.
 
-## Installation on CentOS7
+## Installation
 
-```bash
-# Preliminary installation
-sudo yum install -y wget fontconfig-devel libXrender-devel libXext libgfortran git ImageMagick;
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash;
-nvm install v12.16.3;
-nvm alias default v12.16.3;
+ 1. Have `nodejs`, `nvm` installed.
+ 1. `nvm install v12.16.3`
+ 1. `nvm use v12.16.3`
+ 1. `npm install -g nodemon`
+ 1. `cd path/to/this/repo`
+ 1. (Future) Copy `forecast.ncl` to this location or something.  TODO fix.
+ 1. `npm install`
 
-# Install NCL
-wget https://www.earthsystemgrid.org/dataset/ncl.630.0/file/ncl_ncarg-6.3.0.Linux_CentOS7.0_x86_64_gcc482.tar.gz;
-sudo mkdir /usr/local/ncl-6.3.0;
-sudo chown -R centos /usr/local/ncl-6.3.0/;
-tar -zxvf ncl_ncarg-6.3.0.Linux_CentOS7.0_x86_64_gcc482.tar.gz -C /usr/local/ncl-6.3.0;
-export NCARG_ROOT=/usr/local/ncl-6.3.0/;
-export PATH=$NCARG_ROOT/bin:$PATH;
-ncl -V; # Verify this responds with sane value
-./scripts/setup_ncl_environment.sh;
-./scripts/update_data.sh;
-
-# Install & run the API
-npm install;
-npm run prod;
-```
-
-### Data update cronjob
-
-A cronjob should be added which executes the `./scripts/update_data.sh` script.
-
-## Some notes on running this script
+## Running
 
 The user running the process must have the `ncl` exec in its path.
 
@@ -51,7 +32,7 @@ Other environment variables to set:
 ### Production
 
 ```
-npm run prod
+npm start
 npm run restart # to reload running service
 ```
 
