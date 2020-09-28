@@ -61,25 +61,25 @@ html
                 div(class="tile is-parent")
                     div(class="tile is-child box")
                         h3(class="title is-4") Analog Forecast, #{theme}
-                        h4(class="subtitle is-5") #{forecast_year_range}
+                        h4(class="subtitle is-5") #{forecast_start}&ndash;#{forecast_end}
                         img(src=path + "b.png" class="forecast-output result")
                 div(class="tile is-4 is-vertical is-parent")
                     div(class="tile is-child box")
                         h3(class="title is-5") Analog matches
-                        h4(class="subtitle is-6") #{analog_year_range}
+                        h4(class="subtitle is-6") #{analog_start}&ndash;#{analog_end}
                         img(src=path + "a.png" class="clip result")
                     div(class="tile is-child")
 
     section(class="section")
         div(class="container")
             h2(class="title is-4") Analog match years
-            p(class="is-size-5") This table shows #{theme} from the match years for the analog match date range (#{analog_month_range}) and the corresponding forecast date range (#{forecast_month_range}).
+            p(class="is-size-5") This table shows #{theme} from the match years for the analog match date range (#{analog_start_months}&ndash;#{analog_end_months}) and the corresponding forecast date range (#{forecast_start_months}&ndash;#{forecast_end_months}).
             table(class="table analogs")
                 thead
                     tr
                         th(scope="col") Match year
-                        th(scope="col" class="has-text-centered") #{analog_month_range}
-                        th(scope="col" class="has-text-centered") #{forecast_month_range}
+                        th(scope="col" class="has-text-centered") #{analog_start_months}&ndash;#{analog_end_months}
+                        th(scope="col" class="has-text-centered") #{forecast_start_months}&ndash;#{forecast_end_months}
                 tbody
                     tr
                         th(scope="row")= year_1

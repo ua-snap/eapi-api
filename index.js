@@ -242,29 +242,8 @@ function renderAnalogForecast(pathBase, query, res) {
 
     var analog_start = moment(query.analog_daterange_start);
     var analog_end = moment(query.analog_daterange_end);
-
-    // Generate analog month and year ranges for PUG rendering
-    var analog_month_range, analog_year_range;
-    if (analog_start.format("MMMM YYYY") == analog_end.format("MMMM YYYY")) {
-        analog_year_range = analog_start.format("MMMM YYYY");
-        analog_month_range = analog_start.format("MMMM");
-    } else {
-        analog_year_range = analog_start.format("MMMM YYYY") + " - " + analog_end.format("MMMM YYYY");
-        analog_month_range = analog_start.format("MMMM") + " - " + analog_end.format("MMMM");
-    }
-
     var forecast_start = moment(query.forecast_daterange_start);
     var forecast_end = moment(query.forecast_daterange_end);
-
-    // Generate forecast month and year ranges for PUG rendering
-    var forecast_month_range, forecast_year_range;
-    if (forecast_start.format("MMMM YYYY") == forecast_end.format("MMMM YYYY")) {
-        forecast_year_range = forecast_start.format("MMMM YYYY");
-        forecast_month_range = forecast_start.format("MMMM");
-    } else {
-        forecast_year_range = forecast_start.format("MMMM YYYY") + " - " + forecast_end.format("MMMM YYYY");
-        forecast_month_range = forecast_start.format("MMMM") + " - " + forecast_end.format("MMMM");
-    }
 
     // Read output text file(s) to grab more info
     yearsText = fs.readFileSync(publicPathBase + "text2.txt", "utf-8");
@@ -277,10 +256,14 @@ function renderAnalogForecast(pathBase, query, res) {
         analytics: EAPI_ANALYTICS_TOKEN,
         path: pathBase,
         theme: forecast_themes[query.forecast_theme],
-        forecast_year_range: forecast_year_range,
-        forecast_month_range: forecast_month_range,
-        analog_year_range: analog_year_range,
-        analog_month_range: analog_month_range,
+        forecast_start: forecast_start.format("MMMM YYYY"),
+        forecast_end: forecast_end.format("MMMM YYYY"),
+        analog_start: analog_start.format("MMMM YYYY"),
+        analog_end: analog_end.format("MMMM YYYY"),
+        analog_start_months: analog_start.format("MMMM"),
+        analog_end_months: analog_end.format("MMMM"),
+        forecast_start_months: forecast_start.format("MMMM"),
+        forecast_end_months: forecast_end.format("MMMM"),
         forecast_bbox: forecast_bbox,
         analog_match_bbox: analog_match_bbox,
         pressure_height: '500mb',
