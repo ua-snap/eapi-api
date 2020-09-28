@@ -22,39 +22,6 @@ html
         div(class="container")
             h1(class="title is-3") Experimental Analog Forecast Results
 
-            table(class="table parameters")
-                thead
-                    tr
-                        th(scope="col") Parameter
-                        th(scope="col" class="has-text-centered") Value
-
-                tbody
-                    tr
-                        th(scope="row") Forecast theme
-                        td= theme
-                    tr
-                        th(scope="row") Forecast area BBOX
-                        td= forecast_bbox
-                    tr
-                        th(scope="row") Analog match search BBOX
-                        td= analog_match_bbox
-                    tr
-                        th(scope="row") Analog match pressure level height
-                        td= pressure_height
-                    tr
-                        th(scope="row") Analog match temperature level height
-                        td= temperature_height
-                    tr
-                        th(scope="row") Detrend data?
-                        td= detrend
-                    tr
-                        th(scope="row") Automatic match weights?
-                        td= automatic_weights
-                    tr
-                        th(scope="row") Number of analog matches
-                        td 5
-
-
     section(class="section")
         div(class="container")
             div(class="tile is-ancestor")
@@ -74,7 +41,7 @@ html
         div(class="container")
             h2(class="title is-4") Analog match years
             p(class="is-size-5") This table shows #{theme} from the match years for the analog match date range (#{analog_start_months}&ndash;#{analog_end_months}) and the corresponding forecast date range (#{forecast_start_months}&ndash;#{forecast_end_months}).
-            table(class="table analogs")
+            table(class="table")
                 thead
                     tr
                         th(scope="col") Match year

@@ -249,9 +249,6 @@ function renderAnalogForecast(pathBase, query, res) {
     yearsText = fs.readFileSync(publicPathBase + "text2.txt", "utf-8");
     let [year1, year2, year3, year4, year5] = yearsText.matchAll(/\d{4}/g);
 
-    forecast_bbox = query.forecast_bbox_n + "N, " + query.forecast_bbox_w + "W, " + query.forecast_bbox_s + "S, " + query.forecast_bbox_e + "E"
-    analog_match_bbox = query.analog_bbox_n + "N, " + query.analog_bbox_w + "W, " + query.analog_bbox_s + "S, " + query.analog_bbox_e + "E"
-
     res.render("results", {
         analytics: EAPI_ANALYTICS_TOKEN,
         path: pathBase,
@@ -264,12 +261,6 @@ function renderAnalogForecast(pathBase, query, res) {
         analog_end_months: analog_end.format("MMMM"),
         forecast_start_months: forecast_start.format("MMMM"),
         forecast_end_months: forecast_end.format("MMMM"),
-        forecast_bbox: forecast_bbox,
-        analog_match_bbox: analog_match_bbox,
-        pressure_height: '925mb',
-        temperature_height: '925mb',
-        detrend: 'No',
-        automatic_weights: 'Yes',
         year_1: year1,
         year_2: year2,
         year_3: year3,

@@ -56,7 +56,7 @@ table {
 	margin-top: 2rem;
 }
 
-table.analogs tr th[scope="row"] {
+tr th[scope="row"] {
 	vertical-align: middle;
 	font-weight: 900;
 	font-size: 120%;
