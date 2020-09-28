@@ -22,8 +22,13 @@ nav .navbar-brand img {
 	height: 5rem;
 }
 
-nav div.container {
+div.container.nav {
 	border-bottom: 1px solid #aaa;
+}
+
+nav div.buttons {
+	position: relative;
+	right: 1rem;
 }
 
 /* A couple places to clip away the extra stuff so the main results page just shows the pretty pictures. */
