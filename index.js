@@ -187,7 +187,7 @@ mkdir -p $NCL_OUTPUT_DIR && \
 ncl -n -Q \
 fromweb=1 \
 txtareayesno=2 \
-heightlev=5 \
+heightlev=1 \
 templev=1 \
 detrend=${params.detrend_data} \
 howmanyyears=${params.num_analogs} \
@@ -266,7 +266,7 @@ function renderAnalogForecast(pathBase, query, res) {
         forecast_end_months: forecast_end.format("MMMM"),
         forecast_bbox: forecast_bbox,
         analog_match_bbox: analog_match_bbox,
-        pressure_height: '500mb',
+        pressure_height: '925mb',
         temperature_height: '925mb',
         detrend: 'No',
         automatic_weights: 'Yes',
