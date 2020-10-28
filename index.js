@@ -6,7 +6,7 @@ const fs = require("fs");
 var moment = require("moment");
 var hash = require("object-hash");
 const winston = require("winston");
-const debug = process.env.NODE_ENV != "production";
+const debug = process.env.NODE_ENV === "debug";
 const EAPI_ANALYTICS_TOKEN = process.env.EAPI_ANALYTICS_TOKEN;
 
 // Bail if no analytics token is set.
@@ -47,8 +47,7 @@ if (debug) {
 const port = process.env.NODE_PORT || 3000;
 const nclScript = process.env.NCL_SCRIPT || "./forecast.ncl";
 const ifUseCache = process.env.EAPI_USE_CACHE || true;
-ifDebug = true ? "debug" : "production";
-logger.info({ NODE_PORT: port, NODE_ENV: ifDebug });
+logger.info({ NODE_PORT: port, NODE_ENV: debug ? "debug" : "production" });
 logger.info({ NCL_SCRIPT: nclScript });
 logger.info({ EAPI_USE_CACHE: ifUseCache });
 
