@@ -94,8 +94,11 @@ end if
   ;currentYear = 2020        ; most recent year with data
 ;***********************************************************
 
-
-  theMaxDimsizes = ((currentYear - 1948) * 12) + currentMonth
+  ; TODO @bob Re-evaluate this as the datasets coming from NOAA have a confirmed
+  ; release schedule again. We were forced to push the maximum dimension
+  ; size to match the precip.mon.anom.nc maximum dimension size.
+  ; This is not a robust solution and needs to updated in the future.
+  theMaxDimsizes = ((currentYear - 1948) * 12) + currentMonth - 2
 
 
 
