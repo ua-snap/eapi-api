@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const { validate, ValidationError, Joi } = require("express-validation");
 const { exec } = require("child_process");
 const fs = require("fs");
+const https = require("https");
 var moment = require("moment");
 var hash = require("object-hash");
 const winston = require("winston");
@@ -420,6 +421,11 @@ app.use(function (err, req, res, next) {
     });
 });
 
-app.listen(port, () =>
+const httpsServer = https.createServer({
+   key: fs.readFileSync('/etc/letsencrypt/live/phoebe.snap.uaf.edu/privkey.pem'),
+   cert: fs.readFileSync('/etc/letsencrypt/live/phoebe.snap.uaf.edu/fullchain.pem'),
+   }, app);
+
+httpsServer.listen(port, () =>
     console.log(`EAPI-API listening at http://localhost:${port}`)
 );
